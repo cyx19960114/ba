@@ -1,4 +1,4 @@
-setwd("C:/Users/cyx19/Desktop/ba")
+setwd("C:/Users/cyx19/Desktop/ba-master")
 
 library(ggseg)
 library(ggseg3d)
@@ -57,6 +57,8 @@ example1Data = data.frame(
 )
 example1Data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",example1Data$wert)
 
+example1Data$area<-as.character(example1Data$area)
+
 ## test
 someData = data.frame(
   area = Data2,
@@ -76,14 +78,13 @@ Frau = data.frame(
   testwert = sample(seq(0,30,.01),74),
   strings_As_Factors = FALSE)
 
-tt <- ggseg3d(.data = someData,
+ggseg3d(.data = example1Data,
         atlas = desterieux_neu,
         colour = "wert", text = "beschreibung",#text Ϊ???????ݲ???Ҫ????wert??area??Ϊregion1-74
         surface = "LCBC",
-        palette = c("red" = 0, "yellow" = 0.5, "blue" = 1),#?????????ޣ????޺?=0??????��=1?????Ը???
-        hemisphere = "left",
+        palette = c("red" = 1, "yellow" = 2, "blue" = 3),#?????????ޣ????޺?=0??????��=1?????Ը???
+        hemisphere = c("left","right"),
         na.alpha= .5) %>%
-  add_glassbrain("right") %>%
   pan_camera("left lateral") %>%
        remove_axes()
 
