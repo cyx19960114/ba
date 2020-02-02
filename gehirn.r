@@ -45,8 +45,8 @@ for (j in 1:6) {
 ## read OASIS
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 region_names <- names(OASIS)[-1:-3]
-names(OASIS)[4:77] <-paste("Left_Region",1:74,sep = " ") 
-names(OASIS)[78:151] <-paste("Right_Region",1:74,sep = " ")
+names(OASIS)[4:77] <-paste("Left_Region",1:74) 
+names(OASIS)[78:151] <-paste("Right_Region",1:74)
 OASIS_Thinkness <- OASIS[-1:-3]
 a1 <- t(OASIS_Thinkness[1,])
 
@@ -76,12 +76,16 @@ Frau = data.frame(
   testwert = sample(seq(0,30,.01),74),
   strings_As_Factors = FALSE)
 
-tt <- ggseg3d(.data = someData,
+
+###########################
+###########################
+
+ggseg3d(.data = example1Data,
         atlas = desterieux_neu,
         colour = "wert", text = "beschreibung",#text Ϊ???????ݲ???Ҫ????wert??area??Ϊregion1-74
         surface = "LCBC",
-        palette = c("red" = 0, "yellow" = 0.5, "blue" = 1),#?????????ޣ????޺?=0??????��=1?????Ը???
-        hemisphere = "left",
+        hemisphere = c("left","right"),
+        palette = c("red" = 0, "yellow" = 0.5, "blue" = 3.2),#?????????ޣ????޺?=0??????��=1?????Ը???
         na.alpha= .5) %>%
   add_glassbrain("right") %>%
   pan_camera("left lateral") %>%
