@@ -9,23 +9,61 @@ library(readxl)
 
 Data <- read_excel("someData.xlsx", col_types = c("text"))
 
+Data2 <- data.frame(
+  area = paste("Region",1:74)
+)
+
+
+
 desterieux_neu<-desterieux_3d
 
+
+## mark the names of brain region
+
+
+
+## make the names pass to left and right brain
 for (j in 1:6) {
- for (i in 1:82) {
-  desterieux_neu[[4]][[j]][[1]][[i]]<-as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])
+  if (desterieux_neu[[3]][[j]] == "left") {
+    for (i in 1:82) {
+      desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+    }
+    for (i in 84:149) {
+      desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+    }
+  }else{
+    for (i in 1:82) {
+      desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+    }
+    for (i in 84:149) {
+      desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+    }
+  }
 }
-for (i in 84:149) {
-  desterieux_neu[[4]][[j]][[1]][[i]]<-as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1
-} 
-}
 
 
+## read OASIS
+OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
+region_names <- names(OASIS)[-1:-3]
+names(OASIS)[4:77] <-paste("Left_Region",1:74,sep = " ") 
+names(OASIS)[78:151] <-paste("Right_Region",1:74,sep = " ")
+OASIS_Thinkness <- OASIS[-1:-3]
+a1 <- t(OASIS_Thinkness[1,])
 
+example1Data = data.frame(
+  area = row.names(a1),
+  wert = as.numeric(a1[,1]),
+  strings_As_Factors = FALSE
+)
+example1Data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",example1Data$wert)
+
+## test
 someData = data.frame(
-  area = Data,
+  area = Data2,
   wert = sample(seq(0,1,.01), 74),
   strings_As_Factors = FALSE)
+
+someData$beschreibung <- paste("wert ist ", someData$wert,sep = ' ')
 
 Herr = data.frame(
   area = Data,
@@ -38,11 +76,11 @@ Frau = data.frame(
   testwert = sample(seq(0,30,.01),74),
   strings_As_Factors = FALSE)
 
-ggseg3d(.data = Frau,
+tt <- ggseg3d(.data = someData,
         atlas = desterieux_neu,
-        colour = "wert", text = "wert",#text 为附加内容并且要带上wert，area改为region1-74
+        colour = "wert", text = "beschreibung",#text 为???????莶???要????wert??area??为region1-74
         surface = "LCBC",
-        palette = c("red" = 0, "yellow" = 0.5, "blue" = 1),#定死上下限，下限红=0，上限蓝=1，可以更改
+        palette = c("red" = 0, "yellow" = 0.5, "blue" = 1),#?????????蓿????藓?=0??????锟斤拷=1?????愿???
         hemisphere = "left",
         na.alpha= .5) %>%
   add_glassbrain("right") %>%
