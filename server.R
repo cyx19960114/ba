@@ -6,6 +6,7 @@ library(ggseg3d)
 library(ggsegExtra)
 library(plotly)
 library(ggplot2)
+library(readxl)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -15,6 +16,7 @@ server<-function(input, output,session) {
   
   
   #update sex and id choices when age changes
+  #######################################################
   observeEvent(input$age,{
     s_age <- input$age
     if(s_age!=""){
@@ -35,6 +37,7 @@ server<-function(input, output,session) {
   
   
   ##update age and id choices when sex changes
+  #######################################################
   observeEvent(input$sex,{
     s_sex <- input$sex
     if(s_sex!=""){
@@ -54,6 +57,7 @@ server<-function(input, output,session) {
   
   
   # when the id is detemined, update the sex and age value
+  #######################################################
   observeEvent(input$id,{
     s_id <- input$id
     if (s_id!="") {
@@ -75,15 +79,18 @@ server<-function(input, output,session) {
   })
   
 
+  
+  ## output OASIS table
+  #######################################################
   output$table<- DT::renderDataTable(DT::datatable({
-    if(input$sex!="All"){
+    if(input$sex!=""){
       OASIS<-OASIS[OASIS$sex==input$sex,]
     }
-    if(input$age!="All"){
+    if(input$age!=""){
       OASIS<-OASIS[OASIS$age==input$age,]
     }
-    if(input$id!="All"){
-      OASIS<-OASIS[OASIS$id==input$id,]
+    if(input$id!=""){
+      OASIS<-OASIS[OASIS$ID==input$id,]
     }
     OASIS
   }))
@@ -101,15 +108,15 @@ server<-function(input, output,session) {
   
   
   
-  output$ggseg3d<- renderPlotly({  ggseg3d(.data = example1Data,
-                                           atlas = desterieux_neu,
-                                           colour = "wert", text = "beschreibung",
-                                           surface = "LCBC",
-                                           palette = c("red" = 1, "yellow" = 2, "blue" = 3),
-                                           hemisphere = c("left","right"),
-                                           na.alpha= .5) %>%
-      pan_camera("left lateral") %>%
-      remove_axes()})
+  # output$ggseg3d<- renderPlotly({  ggseg3d(.data = example1Data,
+  #                                          atlas = desterieux_neu,
+  #                                          colour = "wert", text = "beschreibung",
+  #                                          surface = "LCBC",
+  #                                          palette = c("red" = 1, "yellow" = 2, "blue" = 3),
+  #                                          hemisphere = c("left","right"),
+  #                                          na.alpha= .5) %>%
+  #     pan_camera("left lateral") %>%
+  #     remove_axes()})
   
   
 }

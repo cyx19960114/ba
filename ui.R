@@ -20,19 +20,19 @@ fluidRow(
   column(4,
     selectizeInput(inputId = "sex",
                 label = "waehlen Geschlecht:",
-                choices = c("All",u_sex))
+                choices = c("All"="",u_sex))
   ),
   column(4,
     selectInput(inputId = "age",
                 label = "waehlen Alt:",
-                choices = c("All",u_age))
+                choices = c("All"="",u_age))
   ),
   column(4,
     selectInput(inputId = "id",
                 label = "waehlen ID",
-                choices = c("All",u_IDs))
+                choices = c("All"="",u_IDs))
   )
     ),
     DT::dataTableOutput("table"),
-    plotlyOutput("ggseg3d")
+    # plotlyOutput("ggseg3d")
   )
