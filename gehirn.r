@@ -52,7 +52,7 @@ OASIS_Thinkness <- OASIS[-1:-3]
 a1 <- t(OASIS_Thinkness[1,])
 
 example1Data = data.frame(
-  area = row.names(a1),
+  area = as.character(row.names(a1)),
   wert = as.numeric(a1[,1]),
   strings_As_Factors = FALSE
 )
@@ -92,3 +92,13 @@ ggseg3d(.data = example1Data,
         na.alpha= .5) %>%
   pan_camera("left lateral") %>%
        remove_axes()
+
+# ggseg3d(.data = Herr,
+#         atlas = desterieux_3d,
+#         colour = "wert", text = "wert",
+#         surface = "LCBC",
+#         palette = c("red" = 0, "yellow" = 0.5, "blue" = 1),
+#         hemisphere = c("left","right"),
+#         na.alpha= .5) %>%
+#   pan_camera("left lateral") %>%
+#   remove_axes()
