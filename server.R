@@ -5,6 +5,7 @@ library(tidyr)
 library(ggseg3d)
 library(ggsegExtra)
 library(plotly)
+library(ggplot2)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -73,11 +74,19 @@ server<-function(input, output,session) {
     }
   })
   
-  
-  
-  
 
-  
+  output$table<- DT::renderDataTable(DT::datatable({
+    if(input$sex!="All"){
+      OASIS<-OASIS[OASIS$sex==input$sex,]
+    }
+    if(input$age!="All"){
+      OASIS<-OASIS[OASIS$age==input$age,]
+    }
+    if(input$id!="All"){
+      OASIS<-OASIS[OASIS$id==input$id,]
+    }
+    OASIS
+  }))
   
   
   datasetInput<-reactive({
@@ -92,19 +101,15 @@ server<-function(input, output,session) {
   
   
   
-  output$ggseg3d<- renderPlotly({  ggseg3d(datasetInput(),
-                                           atlas = desterieux_3d,
-                                           colour = "wert", text = "wert",
-                                           palette = c("#ff0000", "#00ff00", "#0000ff"),
-                                           hemisphere = "left",
-                                           na.alpha= .5)})
-  
-  output$ggseg3d1<- renderPlotly({ ggseg3d(datasetInput1(),
-                                           atlas = desterieux_3d,
-                                           colour = "wert", text = "wert",
-                                           palette = c("#ff0000", "#00ff00", "#0000ff"),
-                                           hemisphere = "left",
-                                           na.alpha= .5)})
+  output$ggseg3d<- renderPlotly({  ggseg3d(.data = example1Data,
+                                           atlas = desterieux_neu,
+                                           colour = "wert", text = "beschreibung",
+                                           surface = "LCBC",
+                                           palette = c("red" = 1, "yellow" = 2, "blue" = 3),
+                                           hemisphere = c("left","right"),
+                                           na.alpha= .5) %>%
+      pan_camera("left lateral") %>%
+      remove_axes()})
   
   
 }

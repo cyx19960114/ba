@@ -1,5 +1,5 @@
 
-setwd("C:/Users/cyx19/Desktop/ba")
+setwd("C:/Users/cyx19/Desktop/ba/ba")
 
 library(ggseg)
 library(ggseg3d)

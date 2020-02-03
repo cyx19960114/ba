@@ -4,6 +4,7 @@ library(dplyr)
 library(tidyr)
 library(ggseg3d)
 library(ggsegExtra)
+library(ggplot2)
 
 ## read OASIS
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -12,26 +13,26 @@ u_age <- sort(as.numeric(unique(id_sex_age$age)))
 u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 
-shinyUI(fluidPage(
-  headerPanel("ggseg3d"),
-  sidebarPanel(
+fluidPage(
+  titlePanel("ggseg3d"),
+
+fluidRow(
+  column(4,
     selectizeInput(inputId = "sex",
                 label = "waehlen Geschlecht:",
-                choices = c("sex"="",u_sex)),
+                choices = c("All",u_sex))
+  ),
+  column(4,
     selectInput(inputId = "age",
                 label = "waehlen Alt:",
-                choices = c("age"="",u_age)),
+                choices = c("All",u_age))
+  ),
+  column(4,
     selectInput(inputId = "id",
                 label = "waehlen ID",
-                choices = c("id"="",u_IDs)
-                ),
-    ),
-  
-  
-  
-  mainPanel(
-    # plotlyOutput("ggseg3d"),
-    # plotlyOutput("ggseg3d1")
-    
+                choices = c("All",u_IDs))
   )
-))
+    ),
+    DT::dataTableOutput("table"),
+    plotlyOutput("ggseg3d")
+  )
