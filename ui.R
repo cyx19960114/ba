@@ -19,22 +19,24 @@ fluidPage(
   titlePanel("ggseg3d"),
   
   fluidRow(
-    column(4,
+    column(3,
            selectizeInput(inputId = "sex",
                           label = "waehlen Geschlecht:",
                           choices = c("All"="",u_sex))
     ),
-    column(4,
+    column(3,
            selectInput(inputId = "age",
                        label = "waehlen Alt:",
                        choices = c("All"="",u_age))
     ),
-    column(4,
+    column(3,
            selectInput(inputId = "id",
                        label = "waehlen ID",
                        choices = c("All"="",u_IDs))
     ),
-    tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)")
+    column(3, 
+           tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"))
+    
   ),
   
   DT::dataTableOutput("table"),
