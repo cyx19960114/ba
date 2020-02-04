@@ -35,13 +35,26 @@ fluidPage(
                        label = "waehlen ID",
                        choices = c("All"="",u_IDs))
     ),
-    column(3,
-           selectInput(inputId = "region",
-                       label = "waehlen Region",
-                       choices = c("All"="",u_region))
-    ),
+    # column(3,
+    #        selectInput(inputId = "region",
+    #                    label = "waehlen Region",
+    #                    choices = c("All"="",u_region))
+    # ),
     column(3, 
            tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"))
+    
+  ),
+  
+  fluidRow(
+    column(2,checkboxInput("single_region","single region",FALSE)),
+    
+    column(4,
+           conditionalPanel(
+             condition = "input.single_region==1",
+             selectInput(inputId = "region",
+                         label = "waehlen Region",
+                         choices = c("All"="",u_region))
+           ))
     
   ),
   

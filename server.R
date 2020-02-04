@@ -36,9 +36,9 @@ server<-function(input, output,session) {
   
   ########
   #observeEvent(input$region,{
-   # s_region<-input$region
-    
-#  })
+  # s_region<-input$region
+  
+  #  })
   
   ########
   
@@ -87,7 +87,7 @@ server<-function(input, output,session) {
   })
   
   
-
+  
   
   ## output OASIS table
   #######################################################
@@ -144,7 +144,7 @@ server<-function(input, output,session) {
   region_names <- names(oasis_data)[-1:-3]
   names(oasis_data)[4:77] <-paste("Left_Region",1:74) 
   names(oasis_data)[78:151] <-paste("Right_Region",1:74)
-
+  
   
   
   observe(print(input$id))
@@ -155,51 +155,35 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     
-    #auswahl_id <- input$id
-    #auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
-    #auswahl_area <- t(auswahl_area[-1:-3])
-    #auswahl_data = data.frame(
-     # area = as.character(row.names(auswahl_area)),
-      #wert = as.numeric(auswahl_area[,1]),
-      #strings_As_Factors = FALSE
-    #)
-    #auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-    
-    
-    
-###############################
-    auswahl_id<-input$id
-    auswahl_region<-input$region
-    auswahl_area<-oasis_data[oasis_data$ID==auswahl_id,]
-    auswahl_area<-auswahl_area[-1:-3]
-    
-    save<-auswahl_area$'auswahl_region'
-    auswahl_area[1,]<-0.5
-    auswahl_area$'auswahl_region'<-save
+    auswahl_id <- input$id
+    auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+    auswahl_area <- auswahl_area[-1:-3]
+    if(input$single_region==1){ ## when only one region to display
+      auswahl_region <- input$single_region
+      save<-auswahl_area[[auswahl_region]]
+      auswahl_area[1,]<-0.5
+      auswahl_area[[auswahl_region]]<-save
+    }
+    auswahl_area <- t(auswahl_area)
     auswahl_data = data.frame(
       area = as.character(row.names(auswahl_area)),
       wert = as.numeric(auswahl_area[,1]),
       strings_As_Factors = FALSE
     )
     auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-
-    
-    
-###############################
-    
     
     isolate({
-
       # ggseg
       ggseg3d(.data = auswahl_data,
-                     atlas = desterieux_neu,
-                     colour = "wert", text = "beschreibung",
-                     surface = "LCBC",
-                     palette = c("yellow" = 1, "red" = 2, "green" = 2.5, "blue" = 3, "cyan" = 4, "white" = 4.2),
-                     hemisphere = c("left","right"),
-                     na.alpha= .5) %>%
+              atlas = desterieux_neu,
+              colour = "wert", text = "beschreibung",
+              surface = "LCBC",
+              palette = c("yellow" = 1, "red" = 2, "green" = 2.5, "blue" = 3, "cyan" = 4, "white" = 4.2),
+              hemisphere = c("left","right"),
+              na.alpha= .5) %>%
         pan_camera("left lateral") %>%
-        remove_axes()})
+        remove_axes()
+    })
     
     
     # 暂时没用
