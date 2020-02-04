@@ -34,6 +34,14 @@ server<-function(input, output,session) {
       
     } })
   
+  ########
+  #observeEvent(input$region,{
+   # s_region<-input$region
+    
+#  })
+  
+  ########
+  
   
   
   ##update age and id choices when sex changes
@@ -97,6 +105,7 @@ server<-function(input, output,session) {
       if(input$id!=""){
         out_Oasis_table<-out_Oasis_table[out_Oasis_table$ID==input$id,]
       }
+      
       out_Oasis_table
     })
     
@@ -106,19 +115,6 @@ server<-function(input, output,session) {
   ##
   observe(print(input$id))
   ##
-  
-  
-  
-  
-  datasetInput<-reactive({
-    switch(input$dataset,
-           "Herr"= Herr,"Frau"= Frau)
-  })
-  
-  datasetInput1<-reactive({
-    switch(input$dataset1,
-           "Herr"= Herr,"Frau"= Frau)
-  })
   
   
   ## make the names pass to left and right brain
@@ -159,16 +155,37 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     
-    auswahl_id <- input$id
-    auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
-    auswahl_area <- t(auswahl_area[-1:-3])
+    #auswahl_id <- input$id
+    #auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+    #auswahl_area <- t(auswahl_area[-1:-3])
+    #auswahl_data = data.frame(
+     # area = as.character(row.names(auswahl_area)),
+      #wert = as.numeric(auswahl_area[,1]),
+      #strings_As_Factors = FALSE
+    #)
+    #auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+    
+    
+    
+###############################
+    auswahl_id<-input$id
+    auswahl_region<-input$region
+    auswahl_area<-oasis_data[oasis_data$ID==auswahl_id,]
+    auswahl_area<-auswahl_area[-1:-3]
+    
+    save<-auswahl_area$'auswahl_region'
+    auswahl_area[1,]<-0.5
+    auswahl_area$'auswahl_region'<-save
     auswahl_data = data.frame(
       area = as.character(row.names(auswahl_area)),
       wert = as.numeric(auswahl_area[,1]),
       strings_As_Factors = FALSE
     )
     auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+
     
+    
+###############################
     
     
     isolate({

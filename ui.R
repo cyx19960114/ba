@@ -14,6 +14,7 @@ id_sex_age <- OASIS[,1:3]
 u_age <- sort(as.numeric(unique(id_sex_age$age)))
 u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
+u_region<-c(paste("Left_Region",1:74), paste("Right_Region",1:74))
 
 fluidPage(
   titlePanel("ggseg3d"),
@@ -33,6 +34,11 @@ fluidPage(
            selectInput(inputId = "id",
                        label = "waehlen ID",
                        choices = c("All"="",u_IDs))
+    ),
+    column(3,
+           selectInput(inputId = "region",
+                       label = "waehlen Region",
+                       choices = c("All"="",u_region))
     ),
     column(3, 
            tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"))
