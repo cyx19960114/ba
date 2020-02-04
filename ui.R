@@ -33,8 +33,10 @@ fluidPage(
            selectInput(inputId = "id",
                        label = "waehlen ID",
                        choices = c("All"="",u_IDs))
-    )
+    ),
+    tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)")
   ),
+  
   DT::dataTableOutput("table"),
   actionButton("ab","3d brain zeigen"),
   plotlyOutput("ggseg3d")
