@@ -15,24 +15,27 @@ u_sex <- c("F","M")
 
 fluidPage(
   titlePanel("ggseg3d"),
-
-fluidRow(
-  column(4,
-    selectizeInput(inputId = "sex",
-                label = "waehlen Geschlecht:",
-                choices = c("All"="",u_sex))
-  ),
-  column(4,
-    selectInput(inputId = "age",
-                label = "waehlen Alt:",
-                choices = c("All"="",u_age))
-  ),
-  column(4,
-    selectInput(inputId = "id",
-                label = "waehlen ID",
-                choices = c("All"="",u_IDs))
-  )
+  
+  fluidRow(
+    column(4,
+           selectizeInput(inputId = "sex",
+                          label = "waehlen Geschlecht:",
+                          choices = c("All"="",u_sex))
     ),
-    DT::dataTableOutput("table"),
-    # plotlyOutput("ggseg3d")
-  )
+    column(4,
+           selectInput(inputId = "age",
+                       label = "waehlen Alt:",
+                       choices = c("All"="",u_age))
+    ),
+    column(4,
+           selectInput(inputId = "id",
+                       label = "waehlen ID",
+                       choices = c("All"="",u_IDs))
+    )
+  ),
+  DT::dataTableOutput("table"),
+  actionButton("ab","3d brain zeigen"),
+  plotlyOutput("ggseg3d")
+  
+  
+)

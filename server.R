@@ -78,22 +78,36 @@ server<-function(input, output,session) {
     }
   })
   
+  
 
   
   ## output OASIS table
   #######################################################
   output$table<- DT::renderDataTable(DT::datatable({
-    if(input$sex!=""){
-      OASIS<-OASIS[OASIS$sex==input$sex,]
-    }
-    if(input$age!=""){
-      OASIS<-OASIS[OASIS$age==input$age,]
-    }
-    if(input$id!=""){
-      OASIS<-OASIS[OASIS$ID==input$id,]
-    }
-    OASIS
+    if(input$ab==0)
+      return()
+    out_Oasis_table <- OASIS
+    isolate({
+      if(input$sex!=""){
+        out_Oasis_table<-out_Oasis_table[out_Oasis_table$sex==input$sex,]
+      }
+      if(input$age!=""){
+        out_Oasis_table<-out_Oasis_table[out_Oasis_table$age==input$age,]
+      }
+      if(input$id!=""){
+        out_Oasis_table<-out_Oasis_table[out_Oasis_table$ID==input$id,]
+      }
+      out_Oasis_table
+    })
+    
+    
   }))
+  
+  ##
+  observe(print(input$id))
+  ##
+  
+  
   
   
   datasetInput<-reactive({
@@ -107,16 +121,82 @@ server<-function(input, output,session) {
   })
   
   
+  ## make the names pass to left and right brain
+  #######################################################
   
-  # output$ggseg3d<- renderPlotly({  ggseg3d(.data = example1Data,
-  #                                          atlas = desterieux_neu,
-  #                                          colour = "wert", text = "beschreibung",
-  #                                          surface = "LCBC",
-  #                                          palette = c("red" = 1, "yellow" = 2, "blue" = 3),
-  #                                          hemisphere = c("left","right"),
-  #                                          na.alpha= .5) %>%
-  #     pan_camera("left lateral") %>%
-  #     remove_axes()})
+  desterieux_neu<-desterieux_3d # load desterieux_3d
+  for (j in 1:6) {
+    if (desterieux_neu[[3]][[j]] == "left") {
+      for (i in 1:82) {
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+      }
+      for (i in 84:149) {
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+      }
+    }else{
+      for (i in 1:82) {
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+      }
+      for (i in 84:149) {
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+      }
+    }
+  }
+  
+  ## transform the names of OASIS
+  oasis_data <- OASIS
+  region_names <- names(oasis_data)[-1:-3]
+  names(oasis_data)[4:77] <-paste("Left_Region",1:74) 
+  names(oasis_data)[78:151] <-paste("Right_Region",1:74)
+
+  
+  
+  observe(print(input$id))
+  
+  ## make ggseg3d plot
+  #######################################################
+  output$ggseg3d<- renderPlotly({  
+    if(input$ab==0)
+      return()
+    
+    auswahl_id <- input$id
+    auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+    auswahl_area <- t(auswahl_area[-1:-3])
+    auswahl_data = data.frame(
+      area = as.character(row.names(auswahl_area)),
+      wert = as.numeric(auswahl_area[,1]),
+      strings_As_Factors = FALSE
+    )
+    auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+    
+    
+    
+    isolate({
+
+      # ggseg
+      ggseg3d(.data = auswahl_data,
+                     atlas = desterieux_neu,
+                     colour = "wert", text = "beschreibung",
+                     surface = "LCBC",
+                     palette = c("red" = 1, "yellow" = 2, "blue" = 3),
+                     hemisphere = c("left","right"),
+                     na.alpha= .5) %>%
+        pan_camera("left lateral") %>%
+        remove_axes()})
+    
+    
+    # 暂时没用
+    # # progress report
+    # progress_load <- Progress$new(session,min = 1,max=15)
+    # on.exit(progress_load$close())
+    # progress_load$set(message = "3d Image loading")
+    # for (i in 1:15) {
+    #   progress_load$set(value = i)
+    #   Sys.sleep(1)
+    # }
+    
+    
+  })
   
   
 }
