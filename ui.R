@@ -5,6 +5,8 @@ library(tidyr)
 library(ggseg3d)
 library(ggsegExtra)
 library(ggplot2)
+library(readxl)
+library(plotly)
 
 ## read OASIS
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
