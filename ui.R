@@ -85,7 +85,8 @@ fluidPage(
   
   DT::dataTableOutput("table"),
   actionButton("ab","3d brain zeigen"),
-  plotlyOutput("ggseg3d")
+  #plotlyOutput("ggseg3d"),
+  plotOutput("distributionPlot")
   
   
 )

@@ -192,8 +192,31 @@ server<-function(input, output,session) {
   #       pan_camera("left lateral") %>%
   #       remove_axes()
   #   })
+  # })
+  
+  
+    ##distributionPlot
+    ################################
+    output$distributionPlot<-renderPlot({
+      region<-input$region
+      auswahl_id <- input$id
+      auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+      auswahl_area <- auswahl_area[-1:-3]
+      auswahl_region <- input$region
+      selectedData <- oasis_data[auswahl_region]
+      colnames(selectedData) <- c("distributionPlot")
+      selectedData$distributionPlot<-as.numeric(selectedData$distributionPlot)
     
+      save<-auswahl_area[[auswahl_region]]
+      save<-as.numeric(save)
+      
+      ggplot(selectedData,
+             aes(x = distributionPlot)
+             ) + geom_density() + geom_point(aes(save,0),col="red", size=8)
+    })
+    ##########################################
     
+    ##########################################
     # 暂时没用
     # # progress report
     # progress_load <- Progress$new(session,min = 1,max=15)
@@ -203,9 +226,6 @@ server<-function(input, output,session) {
     #   progress_load$set(value = i)
     #   Sys.sleep(1)
     # }
-    
-    
-  # })
   
   
 }
