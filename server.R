@@ -35,8 +35,9 @@ server<-function(input, output,session) {
     } 
   })
   
-
   
+  
+  observe(print(input$single_region))
   
   ##update age and id choices when sex changes
   #######################################################
@@ -85,7 +86,16 @@ server<-function(input, output,session) {
     }
   })
   
-  
+  ## update the tabs when single_region selected
+  ######################################################
+  observeEvent(input$single_region,{
+    if(input$single_region==0)
+      hideTab(inputId ="tab",target = "DistributionPlot")
+    
+    if(input$single_region==01)
+      showTab(inputId ="tab",target = "DistributionPlot")
+  }
+  )
   
   
   ## output OASIS table
@@ -187,7 +197,9 @@ server<-function(input, output,session) {
         age_min = min(input$age_range)
         age_max = max(input$age_range)
         auswahl_area <- oasis_data[oasis_data$age<age_max & oasis_data$age>age_min,]
-        auswahl_area <- auswahl_area[auswahl_area$sex==input$sex,]
+        if(input$com_sex!="All"){
+          auswahl_area <- auswahl_area[auswahl_area$sex==input$com_sex,]
+        }
         auswahl_area <- auswahl_area[-1:-3]
         
         if(input$com_way=="median"){

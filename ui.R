@@ -19,73 +19,91 @@ u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 fluidPage(
   titlePanel("ggseg3d"),
   sidebarLayout(
-    
-  
-  sidebarPanel(
-    selectizeInput(inputId = "sex",
-                   label = "waehlen Geschlecht:",
-                   choices = c("All"="",u_sex)
-                  ),
-    
-    ## single person auswahl
-    #################################
-    
-    conditionalPanel(
-      condition = "input.com==0",
-             selectizeInput(inputId = "age",
-                            label = "waehlen Alt:",
-                            choices = c("All"="",u_age)),
-             selectInput(inputId = "id",
-                         label = "waehlen ID",
-                         choices = c("All"="",u_IDs))
-    ),
-    
-    #############################
-    ##composite display
-    #############################
-    conditionalPanel(
-      condition = "input.com==1",
-             sliderInput("age_range","Age Range",
-                         min = min(u_age),max=max(u_age),
-                         value = c(min(u_age),max(u_age))),
-             radioButtons("com_way","median or mean",choices = c("median","mean"),
-                          selected = "median",inline = TRUE)),
-    
-    
-    
- 
-    ## single person auswahl
-    #################################
-    conditionalPanel(
-      condition = "input.com==0",
-      checkboxInput("single_region","single region",FALSE),
+    sidebarPanel(
+      ## single person auswahl
+      #################################
+      conditionalPanel(
+        condition = "input.com==0",
+        selectizeInput(inputId = "sex",
+                       label = "waehlen Geschlecht:",
+                       choices = c("All"="",u_sex)
+        ),
+        selectizeInput(inputId = "age",
+                       label = "waehlen Alt:",
+                       choices = c("All"="",u_age)),
+        selectInput(inputId = "id",
+                    label = "waehlen ID",
+                    choices = c("All"="",u_IDs))
+      ),
       
-             conditionalPanel(
-               condition = "input.single_region==1",
-               selectInput(inputId = "region",
-                           label = "waehlen Region",
-                           choices = u_region)
-             )
+      #############################
+      ##composite display
+      #############################
+      conditionalPanel(
+        condition = "input.com==1",
+        selectizeInput(inputId = "com_sex",
+                       label = "waehlen Geschlecht:",
+                       choices = c("All",u_sex)
+        ),
+        sliderInput("age_range","Age Range",
+                    min = min(u_age),max=max(u_age),
+                    value = c(min(u_age),max(u_age))),
+        radioButtons("com_way","median or mean",choices = c("median","mean"),
+                     selected = "median",inline = TRUE)),
+      
+      
+      
+      
+      ## single person auswahl
+      #################################
+      conditionalPanel(
+        condition = "input.com==0",
+        checkboxInput("single_region","single region",FALSE),
+        
+        conditionalPanel(
+          condition = "input.single_region == 1",
+          selectInput(inputId = "region",
+                      label = "waehlen Region",
+                      choices = u_region)
+        )
+      ),
+      checkboxInput("com","composite display",FALSE),
+      #############################
+      ##composite display
+      #############################
+      
+      tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
+      
+      actionButton("ab","3d brain zeigen"),
+      
+      
+      
     ),
-    checkboxInput("com","composite display",FALSE),
-    #############################
-    ##composite display
-    #############################
-     
-    tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
     
-    actionButton("ab","3d brain zeigen"),
-  
+    # mainPanel(
+      # conditionalPanel(
+      #   condition = "input.single_region == 1",
+      #   tabsetPanel(type="tabs",
+      #               tabPanel("Table",DT::dataTableOutput("table")),
+      #               tabPanel("3D",plotlyOutput("ggseg3d")),
+      #               tabPanel("DistributionPlot",plotOutput("distributionPlot"))
+      #   )
+      #   
+      # ),
+      # 
+      # tabsetPanel(type="tabs",
+      #             tabPanel("Table",DT::dataTableOutput("table")))
+      
+      
+      
+      
+      mainPanel(
+        tabsetPanel(type = "tabs",id = "tab",
+                    tabPanel("Table",DT::dataTableOutput("table")),
+                    tabPanel("3D",plotlyOutput("ggseg3d")),
+                    tabPanel("DistributionPlot",plotOutput("distributionPlot")))
+      )
 
-  
-),
-
-mainPanel(  
-  tabsetPanel(type = "tabs",
-              tabPanel("Table",DT::dataTableOutput("table")),
-              tabPanel("3D",plotlyOutput("ggseg3d")),
-              tabPanel("DistributionPlot",plotOutput("distributionPlot")))
+    
   )
-
-)
 )
