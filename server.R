@@ -130,17 +130,17 @@ server<-function(input, output,session) {
   for (j in 1:6) {
     if (desterieux_neu[[3]][[j]] == "left") {
       for (i in 1:82) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("L_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
       }
       for (i in 84:149) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Left_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("L_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
       }
     }else{
       for (i in 1:82) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("R_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
       }
       for (i in 84:149) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("Right_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
+        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("R_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
       }
     }
   }
@@ -149,8 +149,8 @@ server<-function(input, output,session) {
   #######################################################
   oasis_data <- OASIS
   region_names <- names(oasis_data)[-1:-3]
-  names(oasis_data)[4:77] <-paste("Left_Region",1:74) 
-  names(oasis_data)[78:151] <-paste("Right_Region",1:74)
+  names(oasis_data)[4:77] <-paste("L_Region",1:74) 
+  names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
   
   

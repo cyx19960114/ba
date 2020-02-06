@@ -14,7 +14,7 @@ id_sex_age <- OASIS[,1:3]
 u_age <- sort(as.numeric(unique(id_sex_age$age)))
 u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
-u_region<-c(paste("Left_Region",1:74), paste("Right_Region",1:74))
+u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 
 fluidPage(
   titlePanel("ggseg3d"),
