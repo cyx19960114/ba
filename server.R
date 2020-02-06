@@ -10,6 +10,7 @@ library(readxl)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
+OASIS[-1:-3] <- apply(OASIS[-1:-3],1,as.numeric)
 id_sex_age <- OASIS[,1:3]
 
 server<-function(input, output,session) {
@@ -34,14 +35,7 @@ server<-function(input, output,session) {
     } 
   })
   
-  ########
-  #observeEvent(input$region,{
-  # s_region<-input$region
-  
-  #  })
-  
-  ########
-  
+
   
   
   ##update age and id choices when sex changes
@@ -96,14 +90,18 @@ server<-function(input, output,session) {
   
   ## output OASIS table
   #######################################################
-  output$table<- DT::renderDataTable(DT::datatable({
+  output$table<- DT::renderDataTable({
+    input$ab
     if(input$ab==0)
       return()
     
-    out_Oasis_table <- OASIS
-    
     isolate({
-      if(input$com==0){
+      if (input$sex=="" & input$age=="" & input$id=="" & input$com==0) {
+        return()
+      }
+      
+      out_Oasis_table <- OASIS
+      if(input$com==0){ ## when single person data
         if(input$sex!=""){
           out_Oasis_table<-out_Oasis_table[out_Oasis_table$sex==input$sex,]
         }
@@ -113,18 +111,15 @@ server<-function(input, output,session) {
         if(input$id!=""){
           out_Oasis_table<-out_Oasis_table[out_Oasis_table$ID==input$id,]
         }
-      }else{
+      }else{ ## when composite data
         if(input$sex!=""){
           out_Oasis_table<-out_Oasis_table[out_Oasis_table$sex==input$sex,]
         }
         out_Oasis_table <- filter(out_Oasis_table,age<=max(input$age_range),age>=min(input$age_range))
       }
-      
     })
-    
-    out_Oasis_table
-  }))
-  
+    DT::datatable(out_Oasis_table)
+  })
   
   
   
@@ -151,6 +146,7 @@ server<-function(input, output,session) {
   }
   
   ## transform the names of OASIS
+  #######################################################
   oasis_data <- OASIS
   region_names <- names(oasis_data)[-1:-3]
   names(oasis_data)[4:77] <-paste("Left_Region",1:74) 
@@ -161,27 +157,60 @@ server<-function(input, output,session) {
   ## make ggseg3d plot
   ######################################################
   output$ggseg3d<- renderPlotly({
+    input$ab  
     if(input$ab==0)
       return()
-
-    auswahl_id <- input$id
-    auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
-    auswahl_area <- auswahl_area[-1:-3]
-    if(input$single_region==1){ ## when only one region to display
-      auswahl_region <- input$region
-      save<-auswahl_area[[auswahl_region]]
-      auswahl_area[1,]<-0.5
-      auswahl_area[[auswahl_region]]<-save
-    }
-    auswahl_area <- t(auswahl_area)
-    auswahl_data = data.frame(
-      area = as.character(row.names(auswahl_area)),
-      wert = as.numeric(auswahl_area[,1]),
-      strings_As_Factors = FALSE
-    )
-    auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-
     isolate({
+      if (input$id =="" & input$com==0) {
+        return()
+      }
+      if(input$id!=""){  ## when single person
+        auswahl_id <- input$id
+        auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+        auswahl_area <- auswahl_area[-1:-3]
+        if(input$single_region==1){ ## when only one region to display
+          auswahl_region <- input$region
+          save<-auswahl_area[[auswahl_region]]
+          auswahl_area[1,]<-0.5
+          auswahl_area[[auswahl_region]]<-save
+        }
+        auswahl_area <- t(auswahl_area)
+        auswahl_data = data.frame(
+          area = as.character(row.names(auswahl_area)),
+          wert = as.numeric(auswahl_area[,1]),
+          strings_As_Factors = FALSE
+        )
+        auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+      }
+      
+      if(input$com!=0){
+        age_min = min(input$age_range)
+        age_max = max(input$age_range)
+        auswahl_area <- oasis_data[oasis_data$age<age_max & oasis_data$age>age_min,]
+        auswahl_area <- auswahl_area[auswahl_area$sex==input$sex,]
+        auswahl_area <- auswahl_area[-1:-3]
+        
+        if(input$com_way=="median"){
+          auswahl_area[1,] <- apply(auswahl_area, 2, median)
+          auswahl_area <- auswahl_area[1,]
+        }
+        
+        if (input$com_way=="mean") {
+          auswahl_area[1,] <- apply(auswahl_area, 2, mean)
+          auswahl_area <- auswahl_area[1,]
+        }
+        auswahl_area <- t(auswahl_area)
+        auswahl_data <- data.frame(
+          area = as.character(row.names(auswahl_area)),
+          wert = auswahl_area[,1],
+          strings_As_Factors = FALSE
+        )
+        auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+      }
+      
+      
+      
+      
       # ggseg
       ggseg3d(.data = auswahl_data,
               atlas = desterieux_neu,
@@ -196,44 +225,44 @@ server<-function(input, output,session) {
   })
   
   
-    ##distributionPlot
-    ################################
-    output$distributionPlot<-renderPlot({
-      if(input$single_region==0)
-        return()
-      if(input$ab==0)
-        return()
-      isolate({
-        region<-input$region
-        auswahl_id <- input$id
-        auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
-        auswahl_area <- auswahl_area[-1:-3]
-        auswahl_region <- input$region
-        selectedData <- oasis_data[auswahl_region]
-        colnames(selectedData) <- c("distributionPlot")
-        selectedData$distributionPlot<-as.numeric(selectedData$distributionPlot)
-        
-        save<-auswahl_area[[auswahl_region]]
-        save<-as.numeric(save)
-        
-        ggplot(selectedData,
-               aes(x = distributionPlot)
-        ) + geom_density() + geom_point(aes(save,0),col="red", size=8)
-      })
+  ##distributionPlot when single person
+  ################################
+  output$distributionPlot<-renderPlot({
+    if(input$single_region==0)
+      return()
+    if(input$ab==0)
+      return()
+    isolate({
+      region<-input$region
+      auswahl_id <- input$id
+      auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+      auswahl_area <- auswahl_area[-1:-3]
+      auswahl_region <- input$region
+      selectedData <- oasis_data[auswahl_region]
+      colnames(selectedData) <- c("distributionPlot")
+      selectedData$distributionPlot<-as.numeric(selectedData$distributionPlot)
       
+      save<-auswahl_area[[auswahl_region]]
+      save<-as.numeric(save)
+      
+      ggplot(selectedData,
+             aes(x = distributionPlot)
+      ) + geom_density() + geom_point(aes(save,0),col="red", size=8)
     })
-    ##########################################
     
-    ##########################################
-    # 暂时没用
-    # # progress report
-    # progress_load <- Progress$new(session,min = 1,max=15)
-    # on.exit(progress_load$close())
-    # progress_load$set(message = "3d Image loading")
-    # for (i in 1:15) {
-    #   progress_load$set(value = i)
-    #   Sys.sleep(1)
-    # }
+  })
+  ##########################################
+  
+  ##########################################
+  # 暂时没用
+  # # progress report
+  # progress_load <- Progress$new(session,min = 1,max=15)
+  # on.exit(progress_load$close())
+  # progress_load$set(message = "3d Image loading")
+  # for (i in 1:15) {
+  #   progress_load$set(value = i)
+  #   Sys.sleep(1)
+  # }
   
   
 }

@@ -52,7 +52,10 @@ fluidPage(
              sliderInput("age_range","Age Range",
                          min = min(u_age),max=max(u_age),
                          value = c(min(u_age),max(u_age)))
-      )
+      ),
+      column(4,
+             radioButtons("com_way","median or mean",choices = c("median","mean"),
+                          selected = "median",inline = TRUE))
     )
     
     
@@ -63,6 +66,7 @@ fluidPage(
     conditionalPanel(
       condition = "input.com==0",
       column(2,checkboxInput("single_region","single region",FALSE)),
+      
       column(4,
              conditionalPanel(
                condition = "input.single_region==1",
@@ -70,12 +74,12 @@ fluidPage(
                            label = "waehlen Region",
                            choices = u_region)
              ))
-    )
+    ),
     
     #############################
     ##composite display
     #############################
-    
+
     
   ),
   fluidRow(
