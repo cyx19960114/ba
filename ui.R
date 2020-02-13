@@ -15,11 +15,42 @@ u_age <- sort(as.numeric(unique(id_sex_age$age)))
 u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
+u_color_obergrenze<-c("white","green","red","blue","yellow","cyan","purple")
+u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
+u_color_untergrenze<-c("white","green","red","blue","yellow","cyan","purple")
 
 fluidPage(
   titlePanel("ggseg3d"),
   sidebarLayout(
     sidebarPanel(
+      
+      ##waehlen color und wert(grenze)
+      ######################################################
+      selectInput(inputId = "color_obergrenze",
+                  label = "waehlen color_obergrenze",
+                  choices = u_color_obergrenze,
+                  "red"),
+      selectInput(inputId = "color_mitte",
+                  label = "waehlen color_obergrenze",
+                  choices = u_color_mitte,
+                  "yellow"),
+      selectInput(inputId = "color_untergrenze",
+                  label = "waehlen color_untergrenz",
+                  choices = u_color_untergrenze,
+                  "blue"),
+      numericInput(inputId = 'wert_obergrenze',
+                   label = 'wert_obergrenze',
+                   4.2),
+      numericInput(inputId = 'wert_mitte',
+                   label = 'wert_mitte',
+                   2.6),
+      numericInput(inputId = 'wert_untergrenze',
+                   label = 'wert_untergrenze',
+                   2),
+      #########################################################
+      
+      
+      
       ## single person auswahl
       #################################
       conditionalPanel(
