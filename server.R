@@ -10,7 +10,7 @@ library(readxl)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
-OASIS[-1:-3] <- apply(OASIS[-1:-3],1,as.numeric)
+OASIS[-1:-3] <- apply(OASIS[-1:-3],2,as.numeric)
 id_sex_age <- OASIS[,1:3]
 
 server<-function(input, output,session) {
@@ -37,7 +37,6 @@ server<-function(input, output,session) {
   
   
   
-  observe(print(input$single_region))
   
   ##update age and id choices when sex changes
   #######################################################
@@ -88,12 +87,20 @@ server<-function(input, output,session) {
   
   ## update the tabs when single_region selected
   ######################################################
+  observeEvent(input$com,{
+    if(input$com==1){
+      updateCheckboxInput(session,"single_region",value = 0)
+    }
+  })
+  
   observeEvent(input$single_region,{
+    
     if(input$single_region==0)
       hideTab(inputId ="tab",target = "DistributionPlot")
     
-    if(input$single_region==01)
+    if(input$single_region==1)
       showTab(inputId ="tab",target = "DistributionPlot")
+    
   }
   )
   
@@ -264,17 +271,6 @@ server<-function(input, output,session) {
     
   })
   ##########################################
-  
-  ##########################################
-  # 暂时没用
-  # # progress report
-  # progress_load <- Progress$new(session,min = 1,max=15)
-  # on.exit(progress_load$close())
-  # progress_load$set(message = "3d Image loading")
-  # for (i in 1:15) {
-  #   progress_load$set(value = i)
-  #   Sys.sleep(1)
-  # }
-  
+
   
 }

@@ -79,21 +79,7 @@ fluidPage(
       
       
     ),
-    
-    # mainPanel(
-      # conditionalPanel(
-      #   condition = "input.single_region == 1",
-      #   tabsetPanel(type="tabs",
-      #               tabPanel("Table",DT::dataTableOutput("table")),
-      #               tabPanel("3D",plotlyOutput("ggseg3d")),
-      #               tabPanel("DistributionPlot",plotOutput("distributionPlot"))
-      #   )
-      #   
-      # ),
-      # 
-      # tabsetPanel(type="tabs",
-      #             tabPanel("Table",DT::dataTableOutput("table")))
-      
+
       
       
       
