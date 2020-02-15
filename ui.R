@@ -24,30 +24,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-      ##waehlen color und wert(grenze)
-      ######################################################
-      selectInput(inputId = "color_obergrenze",
-                  label = "waehlen color_obergrenze",
-                  choices = u_color_obergrenze,
-                  "red"),
-      selectInput(inputId = "color_mitte",
-                  label = "waehlen color_obergrenze",
-                  choices = u_color_mitte,
-                  "yellow"),
-      selectInput(inputId = "color_untergrenze",
-                  label = "waehlen color_untergrenz",
-                  choices = u_color_untergrenze,
-                  "blue"),
-      numericInput(inputId = 'wert_obergrenze',
-                   label = 'wert_obergrenze',
-                   4.2),
-      numericInput(inputId = 'wert_mitte',
-                   label = 'wert_mitte',
-                   2.6),
-      numericInput(inputId = 'wert_untergrenze',
-                   label = 'wert_untergrenze',
-                   2),
-      #########################################################
+      
       
       
       
@@ -102,6 +79,42 @@ fluidPage(
       #############################
       ##composite display
       #############################
+      
+      
+      ##waehlen color und wert(grenze)
+      ######################################################
+      conditionalPanel(
+        condition = "input.com==0",
+        checkboxInput("farbe_wert","Farbe und Wert",FALSE),
+        
+        conditionalPanel(
+          condition = "input.farbe_wert == 1",
+          selectInput(inputId = "color_obergrenze",
+                      label = "waehlen color_obergrenze",
+                      choices = u_color_obergrenze,
+                      "red"),
+          numericInput(inputId = 'wert_obergrenze',
+                       label = 'wert_obergrenze',
+                       4.2),
+          
+          selectInput(inputId = "color_mitte",
+                      label = "waehlen color_mitte",
+                      choices = u_color_mitte,
+                      "yellow"),
+          numericInput(inputId = 'wert_mitte',
+                       label = 'wert_mitte',
+                       2.6),
+          
+          selectInput(inputId = "color_untergrenze",
+                      label = "waehlen color_untergrenz",
+                      choices = u_color_untergrenze,
+                      "blue"),
+          numericInput(inputId = 'wert_untergrenze',
+                       label = 'wert_untergrenze',
+                       2)
+        )
+      ),
+      #########################################################
       
       tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
       
