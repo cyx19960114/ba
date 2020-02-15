@@ -24,10 +24,6 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-      
-      
-      
-      
       ## single person auswahl
       #################################
       conditionalPanel(
@@ -80,14 +76,11 @@ fluidPage(
       ##composite display
       #############################
       
-      
+      checkboxInput("farbe_wert","Farbe und Wert",FALSE),
       ##waehlen color und wert(grenze)
       ######################################################
       conditionalPanel(
-        condition = "input.com==0",
-        checkboxInput("farbe_wert","Farbe und Wert",FALSE),
-        
-        conditionalPanel(
+ 
           condition = "input.farbe_wert == 1",
           selectInput(inputId = "color_obergrenze",
                       label = "waehlen color_obergrenze",
@@ -112,7 +105,7 @@ fluidPage(
           numericInput(inputId = 'wert_untergrenze',
                        label = 'wert_untergrenze',
                        2)
-        )
+        
       ),
       #########################################################
       
