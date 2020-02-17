@@ -275,7 +275,7 @@ server<-function(input, output,session) {
     input$fil
   })
   output$kon <- renderUI({
-    x <- vector("list",10)
+    x <- vector("list",length=length(get_fil()))
     for (ff in get_fil()) {
       x <- append(x,
       list(
