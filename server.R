@@ -12,6 +12,7 @@ library(readxl)
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-3] <- apply(OASIS[-1:-3],1,as.numeric)
 id_sex_age <- OASIS[,1:3]
+u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
 
 server<-function(input, output,session) {
   
@@ -162,6 +163,26 @@ server<-function(input, output,session) {
   names(oasis_data)[4:77] <-paste("L_Region",1:74) 
   names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
+  ######################add mitte color und wert####################################  
+  index_selection <- reactiveVal(1)
+  observeEvent(input$add_mitte, {
+    insertUI(
+      selector = "#add_mitte",
+      where = "beforeBegin",
+      ui = tagList(
+        selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+                    label = paste("color_mitte", index_selection(), sep = "_"),
+                    choices = u_color_mitte,
+                    " "),
+        numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
+                     label = paste("wert_mitte", index_selection(), sep = "_"),
+                     " ")
+      )
+    )
+    new_index <- index_selection() + 1
+    index_selection(new_index)
+  })
+  #############################################################
   
   
   ## make ggseg3d plot
@@ -221,8 +242,8 @@ server<-function(input, output,session) {
       }
       
       ####waehlen color und wert(grenze)######################
-      auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte,input$wert_obergrenze)
-      names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte,input$color_obergrenze)
+      auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte_1,input$wert_mitte_2,input$wert_mitte_3,input$wert_mitte_4,input$wert_mitte_5,input$wert_obergrenze)
+      names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte_1,input$color_mitte_2,input$color_mitte_3,input$color_mitte_4,input$color_mitte_5,input$color_obergrenze)
       auswahl_color<-auswahl_wert
       ############################
       

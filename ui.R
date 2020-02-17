@@ -100,22 +100,15 @@ fluidPage(
           numericInput(inputId = 'wert_obergrenze',
                        label = 'wert_obergrenze',
                        4.2),
-          
-          selectInput(inputId = "color_mitte",
-                      label = "waehlen color_mitte",
-                      choices = u_color_mitte,
-                      "yellow"),
-          numericInput(inputId = 'wert_mitte',
-                       label = 'wert_mitte',
-                       2.6),
-          
           selectInput(inputId = "color_untergrenze",
                       label = "waehlen color_untergrenz",
                       choices = u_color_untergrenze,
                       "blue"),
           numericInput(inputId = 'wert_untergrenze',
                        label = 'wert_untergrenze',
-                       2)
+                       2),
+          actionButton("add_mitte", "Add wert_mitte"),
+          hr()
         
       ),
       #########################################################
