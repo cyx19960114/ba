@@ -220,11 +220,11 @@ server<-function(input, output,session) {
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
       
-    ####waehlen color und wert(grenze)######################
+      ####waehlen color und wert(grenze)######################
       auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte,input$wert_obergrenze)
       names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte,input$color_obergrenze)
       auswahl_color<-auswahl_wert
-    ############################
+      ############################
       
       # ggseg
       ggseg3d(.data = auswahl_data,
@@ -267,6 +267,31 @@ server<-function(input, output,session) {
     
   })
   ##########################################
+  
+  # observe(for (variable in input$fil) {
+  #   print(variable)
+  # })
+  get_fil <- reactive({
+    input$fil
+  })
+  output$kon <- renderUI({
+    x <- vector("list",10)
+    for (ff in get_fil()) {
+      x <- append(x,
+      list(
+        selectInput(inputId = paste0(ff),
+                  label = as.character(ff),
+                  choices = c(" "="",OASIS[[ff]])
+      ))
+      )
+    }
+    return(x)
+  }
+  )
+  
+  
+  
+  
   
   ##########################################
   # 暂时没用

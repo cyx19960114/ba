@@ -76,11 +76,22 @@ fluidPage(
       ##composite display
       #############################
       
+      
+      selectInput("fil",label = "Filtern",
+                  choices = names(OASIS),multiple = TRUE),
+      
+      uiOutput("kon"),
+  
+      
+      
+      
+      
+      
+      
       checkboxInput("farbe_wert","Farbe und Wert",FALSE),
       ##waehlen color und wert(grenze)
       ######################################################
       conditionalPanel(
- 
           condition = "input.farbe_wert == 1",
           selectInput(inputId = "color_obergrenze",
                       label = "waehlen color_obergrenze",
