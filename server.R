@@ -7,6 +7,7 @@ library(ggsegExtra)
 library(plotly)
 library(ggplot2)
 library(readxl)
+library(colourpicker)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -170,10 +171,13 @@ server<-function(input, output,session) {
       selector = "#add_mitte",
       where = "beforeBegin",
       ui = tagList(
-        selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+       # selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+             #       label = paste("color_mitte", index_selection(), sep = "_"),
+             #       choices = u_color_mitte,
+              #      " "),
+        colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
                     label = paste("color_mitte", index_selection(), sep = "_"),
-                    choices = u_color_mitte,
-                    " "),
+                    "black"),
         numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
                      label = paste("wert_mitte", index_selection(), sep = "_"),
                      " ")

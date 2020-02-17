@@ -7,6 +7,7 @@ library(ggsegExtra)
 library(ggplot2)
 library(readxl)
 library(plotly)
+library(colourpicker)
 
 ## read OASIS
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -93,17 +94,19 @@ fluidPage(
       ######################################################
       conditionalPanel(
           condition = "input.farbe_wert == 1",
-          selectInput(inputId = "color_obergrenze",
-                      label = "waehlen color_obergrenze",
-                      choices = u_color_obergrenze,
-                      "red"),
+         # selectInput(inputId = "color_obergrenze",
+          #            label = "waehlen color_obergrenze",
+           #           choices = u_color_obergrenze,
+            #          "red"),
+          colourInput("color_obergrenze", "waehlen color_obergrenze", "red"),
           numericInput(inputId = 'wert_obergrenze',
                        label = 'wert_obergrenze',
                        4.2),
-          selectInput(inputId = "color_untergrenze",
-                      label = "waehlen color_untergrenz",
-                      choices = u_color_untergrenze,
-                      "blue"),
+         # selectInput(inputId = "color_untergrenze",
+               #       label = "waehlen color_untergrenz",
+                 #     choices = u_color_untergrenze,
+                  #    "blue"),
+          colourInput("color_untergrenze", "waehlen color_untergrenze", "blue"),
           numericInput(inputId = 'wert_untergrenze',
                        label = 'wert_untergrenze',
                        2),
