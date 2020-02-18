@@ -170,7 +170,7 @@ server<-function(input, output,session) {
     insertUI(
       selector = "#add_mitte",
       where = "beforeBegin",
-      ui = tagList(
+      ui = tagList(column(12,
        # selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
              #       label = paste("color_mitte", index_selection(), sep = "_"),
              #       choices = u_color_mitte,
@@ -182,53 +182,68 @@ server<-function(input, output,session) {
                      label = paste("wert_mitte", index_selection(), sep = "_"),
                      " ")
       )
-    )
+    ))
     new_index <- index_selection() + 1
     index_selection(new_index)
   })
   
   observeEvent(input$remove_mitte, {
     # remove inserted uis
-    
- if(index_selection() == 2){
-    removeUI(selector = "div:has(> #color_mitte_1)")
-    removeUI(selector = "div:has(> #wert_mitte_1)")
-    new_index <- index_selection() - 1
-    index_selection(new_index)
-    updateNumericInput(session, "wert_mitte_1",value = NA)
- }
-    else if(index_selection() == 3){
-      removeUI(selector = "div:has(> #color_mitte_2)")
-      removeUI(selector = "div:has(> #wert_mitte_2)")
-      new_index <- index_selection() - 1
-      index_selection(new_index)
-      updateNumericInput(session, "wert_mitte_2",value = NA)
-    
+    if (index_selection() > 0) {
+      lapply(1:index_selection(), function(x)
+        removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", x, ")" )))
     }
-    else if(index_selection() == 4){
-      removeUI(selector = "div:has(> #color_mitte_3)")
-      removeUI(selector = "div:has(> #wert_mitte_3)")
-      new_index <- index_selection() - 1
-      index_selection(new_index)
-      updateNumericInput(session, "wert_mitte_3",value = NA)
-    }
-    else if(index_selection() == 5){
-      removeUI(selector = "div:has(> #color_mitte_4)")
-      removeUI(selector = "div:has(> #wert_mitte_4)")
-      new_index <- index_selection() - 1
-      index_selection(new_index)
-      updateNumericInput(session, "wert_mitte_4",value = NA)
-    }
-    else if(index_selection() == 6){
-      removeUI(selector = "div:has(> #color_mitte_5)")
-      removeUI(selector = "div:has(> #wert_mitte_5)")
-      new_index <- index_selection() - 1
-      index_selection(new_index)
-      updateNumericInput(session, "wert_mitte_5",value = NA)
-    }
-    
+    # update from / to inputs
+    # reset reactive value
+    index_selection(1)
     
   })
+  
+  
+  
+  
+ # observeEvent(input$remove_mitte, {
+    # remove inserted uis
+    
+# if(index_selection() == 2){
+  #    removeUI(selector = "div:has(> #color_mitte_1)")
+  # removeUI(selector = "div:has(> #wert_mitte_1)")
+  # new_index <- index_selection() - 1
+  # index_selection(new_index)
+  # updateNumericInput(session, "wert_mitte_1",value = NA)
+  #}
+  # else if(index_selection() == 3){
+  #   removeUI(selector = "div:has(> #color_mitte_2)")
+  #   removeUI(selector = "div:has(> #wert_mitte_2)")
+  #   new_index <- index_selection() - 1
+  #   index_selection(new_index)
+  #   updateNumericInput(session, "wert_mitte_2",value = NA)
+  # 
+  # }
+  # else if(index_selection() == 4){
+  #   removeUI(selector = "div:has(> #color_mitte_3)")
+  #   removeUI(selector = "div:has(> #wert_mitte_3)")
+  #   new_index <- index_selection() - 1
+  #   index_selection(new_index)
+  #   updateNumericInput(session, "wert_mitte_3",value = NA)
+  # }
+  # else if(index_selection() == 5){
+  #   removeUI(selector = "div:has(> #color_mitte_4)")
+  #   removeUI(selector = "div:has(> #wert_mitte_4)")
+  #   new_index <- index_selection() - 1
+  #   index_selection(new_index)
+  #   updateNumericInput(session, "wert_mitte_4",value = NA)
+  # }
+  # else if(index_selection() == 6){
+  #   removeUI(selector = "div:has(> #color_mitte_5)")
+  #   removeUI(selector = "div:has(> #wert_mitte_5)")
+  #   new_index <- index_selection() - 1
+  #   index_selection(new_index)
+  #   updateNumericInput(session, "wert_mitte_5",value = NA)
+  # }
+    
+    
+  #  })
   
   
   
