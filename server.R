@@ -186,6 +186,53 @@ server<-function(input, output,session) {
     new_index <- index_selection() + 1
     index_selection(new_index)
   })
+  
+  observeEvent(input$remove_mitte, {
+    # remove inserted uis
+    
+ if(index_selection() == 2){
+    removeUI(selector = "div:has(> #color_mitte_1)")
+    removeUI(selector = "div:has(> #wert_mitte_1)")
+    new_index <- index_selection() - 1
+    index_selection(new_index)
+    updateNumericInput(session, "wert_mitte_1",value = NA)
+ }
+    else if(index_selection() == 3){
+      removeUI(selector = "div:has(> #color_mitte_2)")
+      removeUI(selector = "div:has(> #wert_mitte_2)")
+      new_index <- index_selection() - 1
+      index_selection(new_index)
+      updateNumericInput(session, "wert_mitte_2",value = NA)
+    
+    }
+    else if(index_selection() == 4){
+      removeUI(selector = "div:has(> #color_mitte_3)")
+      removeUI(selector = "div:has(> #wert_mitte_3)")
+      new_index <- index_selection() - 1
+      index_selection(new_index)
+      updateNumericInput(session, "wert_mitte_3",value = NA)
+    }
+    else if(index_selection() == 5){
+      removeUI(selector = "div:has(> #color_mitte_4)")
+      removeUI(selector = "div:has(> #wert_mitte_4)")
+      new_index <- index_selection() - 1
+      index_selection(new_index)
+      updateNumericInput(session, "wert_mitte_4",value = NA)
+    }
+    else if(index_selection() == 6){
+      removeUI(selector = "div:has(> #color_mitte_5)")
+      removeUI(selector = "div:has(> #wert_mitte_5)")
+      new_index <- index_selection() - 1
+      index_selection(new_index)
+      updateNumericInput(session, "wert_mitte_5",value = NA)
+    }
+    
+    
+  })
+  
+  
+  
+  
   #############################################################
   
   

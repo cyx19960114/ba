@@ -111,6 +111,7 @@ fluidPage(
                        label = 'wert_untergrenze',
                        2),
           actionButton("add_mitte", "Add wert_mitte"),
+          actionButton("remove_mitte","Remove"),
           hr()
         
       ),
