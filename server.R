@@ -11,7 +11,7 @@ library(colourpicker)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
-OASIS[-1:-3] <- apply(OASIS[-1:-3],1,as.numeric)
+OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
 id_sex_age <- OASIS[,1:3]
 u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
 
@@ -171,41 +171,51 @@ server<-function(input, output,session) {
       selector = "#add_mitte",
       where = "beforeBegin",
       ui = tagList(column(12,
-       # selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
-             #       label = paste("color_mitte", index_selection(), sep = "_"),
-             #       choices = u_color_mitte,
-              #      " "),
-        colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
-                    label = paste("color_mitte", index_selection(), sep = "_"),
-                    "black"),
-        numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
-                     label = paste("wert_mitte", index_selection(), sep = "_"),
-                     " ")
+                          # selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+                          #       label = paste("color_mitte", index_selection(), sep = "_"),
+                          #       choices = u_color_mitte,
+                          #      " "),
+                          colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+                                      label = paste("color_mitte", index_selection(), sep = "_"),
+                                      "black"),
+                          numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
+                                       label = paste("wert_mitte", index_selection(), sep = "_"),
+                                       " ")
       )
-    ))
+      ))
     new_index <- index_selection() + 1
     index_selection(new_index)
   })
   
+  observe(print(index_selection() > 1))
   observeEvent(input$remove_mitte, {
     # remove inserted uis
-    if (index_selection() > 0) {
-      lapply(1:index_selection(), function(x)
-        removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", x, ")" )))
-    }
+    # if (index_selection() > 0) {
+    #   lapply(1:index_selection(), 
+    #          function(x){
+    #            removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", x, ")" ))
+    #            
+    #          }
+    #   )
+    #   
+    #   
+    # }
     # update from / to inputs
     # reset reactive value
-    index_selection(1)
+    removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", index_selection()-1, ")"))
+    removeUI(selector = paste0(".col-sm-12:has(#color_mitte_", index_selection()-1, ")"))
+    
+    index_selection(index_selection()-1)
     
   })
   
   
   
   
- # observeEvent(input$remove_mitte, {
-    # remove inserted uis
-    
-# if(index_selection() == 2){
+  # observeEvent(input$remove_mitte, {
+  # remove inserted uis
+  
+  # if(index_selection() == 2){
   #    removeUI(selector = "div:has(> #color_mitte_1)")
   # removeUI(selector = "div:has(> #wert_mitte_1)")
   # new_index <- index_selection() - 1
@@ -241,8 +251,8 @@ server<-function(input, output,session) {
   #   index_selection(new_index)
   #   updateNumericInput(session, "wert_mitte_5",value = NA)
   # }
-    
-    
+  
+  
   #  })
   
   
@@ -261,6 +271,7 @@ server<-function(input, output,session) {
       if (input$id =="" & input$com==0) {
         return()
       }
+      
       if(input$id!=""){  ## when single person
         auswahl_id <- input$id
         auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
@@ -308,11 +319,24 @@ server<-function(input, output,session) {
       }
       
       ####waehlen color und wert(grenze)######################
-      auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte_1,input$wert_mitte_2,input$wert_mitte_3,input$wert_mitte_4,input$wert_mitte_5,input$wert_obergrenze)
-      names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte_1,input$color_mitte_2,input$color_mitte_3,input$color_mitte_4,input$color_mitte_5,input$color_obergrenze)
-      auswahl_color<-auswahl_wert
-      ############################
+      # auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte_1,input$wert_mitte_2,input$wert_mitte_3,input$wert_mitte_4,input$wert_mitte_5,input$wert_obergrenze)
+      # names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte_1,input$color_mitte_2,input$color_mitte_3,input$color_mitte_4,input$color_mitte_5,input$color_obergrenze)
+      # auswahl_color<-auswahl_wert
+      auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
+      auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
+      print(input[[paste("wert_mitte", 1, sep = "_")]])
+      if (1<index_selection()) {
+        print("aaaa")
+        print(index_selection())
+        for (i in 1:(index_selection()-1)) {
+          auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
+          auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
+        }
+      }
+      names(auswahl_wert) <- auswahl_color
+      print(auswahl_wert)
       
+      ############################
       # ggseg
       ggseg3d(.data = auswahl_data,
               atlas = desterieux_neu,
@@ -323,6 +347,8 @@ server<-function(input, output,session) {
               na.alpha= .5) %>%
         pan_camera("left lateral") %>%
         remove_axes()
+      
+      
     })
   })
   
@@ -365,11 +391,11 @@ server<-function(input, output,session) {
     x <- vector("list",length=length(get_fil()))
     for (ff in get_fil()) {
       x <- append(x,
-      list(
-        selectInput(inputId = paste0(ff),
-                  label = as.character(ff),
-                  choices = c(" "="",OASIS[[ff]])
-      ))
+                  list(
+                    selectInput(inputId = paste0(ff),
+                                label = as.character(ff),
+                                choices = c(" "="",OASIS[[ff]])
+                    ))
       )
     }
     return(x)
