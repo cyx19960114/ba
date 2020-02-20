@@ -251,7 +251,7 @@ server<-function(input, output,session) {
               atlas = desterieux_neu,
               colour = "wert", text = "beschreibung",
               surface = "LCBC",
-              palette = sort(auswahl_wert),
+              palette = auswahl_color,
               hemisphere = c("left","right"),
               na.alpha= .5) %>%
         pan_camera("left lateral") %>%
