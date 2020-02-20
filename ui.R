@@ -29,17 +29,11 @@ fluidPage(
       #################################
       conditionalPanel(
         condition = "input.com==0",
-        selectizeInput(inputId = "sex",
-                       label = "waehlen Geschlecht:",
-                       choices = c("All"="",u_sex)
-        ),
-        selectizeInput(inputId = "age",
-                       label = "waehlen Alt:",
-                       choices = c("All"="",u_age)),
-        selectInput(inputId = "id",
-                    label = "waehlen ID",
-                    choices = c("All"="",u_IDs))
+        selectInput("fil",label = "Filtern",
+                    choices = names(OASIS),multiple = TRUE),
+        uiOutput("kon")
       ),
+      
       
       #############################
       ##composite display
@@ -54,7 +48,8 @@ fluidPage(
                     min = min(u_age),max=max(u_age),
                     value = c(min(u_age),max(u_age))),
         radioButtons("com_way","median or mean",choices = c("median","mean"),
-                     selected = "median",inline = TRUE)),
+                     selected = "median",inline = TRUE)
+      ),
       
       
       
@@ -72,17 +67,16 @@ fluidPage(
                       choices = u_region)
         )
       ),
-      checkboxInput("com","composite display",FALSE),
+      
+      checkboxInput(inputId="com",label="composite display",value=FALSE),
+      
+      
+      
       #############################
       ##composite display
       #############################
       
       
-      selectInput("fil",label = "Filtern",
-                  choices = names(OASIS),multiple = TRUE),
-      
-      uiOutput("kon"),
-  
       
       
       
@@ -93,26 +87,26 @@ fluidPage(
       ##waehlen color und wert(grenze)
       ######################################################
       conditionalPanel(
-          condition = "input.farbe_wert == 1",
-         # selectInput(inputId = "color_obergrenze",
-          #            label = "waehlen color_obergrenze",
-           #           choices = u_color_obergrenze,
-            #          "red"),
-          colourInput("color_obergrenze", "waehlen color_obergrenze", "red"),
-          numericInput(inputId = 'wert_obergrenze',
-                       label = 'wert_obergrenze',
-                       4.2),
-         # selectInput(inputId = "color_untergrenze",
-               #       label = "waehlen color_untergrenz",
-                 #     choices = u_color_untergrenze,
-                  #    "blue"),
-          colourInput("color_untergrenze", "waehlen color_untergrenze", "blue"),
-          numericInput(inputId = 'wert_untergrenze',
-                       label = 'wert_untergrenze',
-                       2),
-          actionButton("add_mitte", "Add wert_mitte"),
-          actionButton("remove_mitte","Remove"),
-          hr()
+        condition = "input.farbe_wert == 1",
+        # selectInput(inputId = "color_obergrenze",
+        #            label = "waehlen color_obergrenze",
+        #           choices = u_color_obergrenze,
+        #          "red"),
+        colourInput("color_obergrenze", "waehlen color_obergrenze", "red"),
+        numericInput(inputId = 'wert_obergrenze',
+                     label = 'wert_obergrenze',
+                     4.2),
+        # selectInput(inputId = "color_untergrenze",
+        #       label = "waehlen color_untergrenz",
+        #     choices = u_color_untergrenze,
+        #    "blue"),
+        colourInput("color_untergrenze", "waehlen color_untergrenze", "blue"),
+        numericInput(inputId = 'wert_untergrenze',
+                     label = 'wert_untergrenze',
+                     2),
+        actionButton("add_mitte", "Add wert_mitte"),
+        actionButton("remove_mitte","Remove"),
+        hr()
         
       ),
       #########################################################
@@ -124,17 +118,17 @@ fluidPage(
       
       
     ),
-
-      
-      
-      
-      mainPanel(
-        tabsetPanel(type = "tabs",id = "tab",
-                    tabPanel("Table",DT::dataTableOutput("table")),
-                    tabPanel("3D",plotlyOutput("ggseg3d")),
-                    tabPanel("DistributionPlot",plotOutput("distributionPlot")))
-      )
-
+    
+    
+    
+    
+    mainPanel(
+      tabsetPanel(type = "tabs",id = "tab",
+                  tabPanel("Table",DT::dataTableOutput("table")),
+                  tabPanel("3D",plotlyOutput("ggseg3d")),
+                  tabPanel("DistributionPlot",plotOutput("distributionPlot")))
+    )
+    
     
   )
 )

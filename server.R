@@ -13,126 +13,8 @@ library(colourpicker)
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
 id_sex_age <- OASIS[,1:3]
-u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
 
 server<-function(input, output,session) {
-  
-  
-  #update sex and id choices when age changes
-  #######################################################
-  observeEvent(input$age,{
-    s_age <- input$age
-    if(s_age!=""){
-      if(input$sex==""){
-        updateSelectInput(session,"sex",
-                          choices = c("age"="",sort(unique(OASIS[OASIS$age==s_age,]$sex)))
-        )
-        updateSelectInput(session,"id",
-                          choices = c("id"="",sort(OASIS[OASIS$age==s_age,]$ID)))
-        
-      }else{
-        updateSelectInput(session,"id",
-                          choices = c("id"="",sort(OASIS[OASIS$age==s_age & OASIS$sex==input$sex,]$ID)))
-      }
-    } 
-  })
-  
-  
-  
-  observe(print(input$single_region))
-  
-  ##update age and id choices when sex changes
-  #######################################################
-  observeEvent(input$sex,{
-    s_sex <- input$sex
-    if(s_sex!=""){
-      if(input$age==""){
-        age_sex <- sort(as.numeric(unique(OASIS[OASIS$sex==s_sex,]$age)))
-        updateSelectInput(session,"age",
-                          choices = c("age"="",age_sex)
-        )
-        updateSelectInput(session,"id",
-                          choices = c("id"="",sort(OASIS[OASIS$sex==s_sex,]$ID)))
-        updateSliderInput(session, "age_range",
-                          min = min(age_sex),max = max(age_sex),
-                          value = c(min(age_sex),max(age_sex)))
-      }else{
-        updateSelectInput(session,"id",
-                          choices = c("id"="",sort((OASIS[OASIS$sex==s_sex & OASIS$age==input$age,]$ID)))
-        )
-      }
-    } 
-  })
-  
-  
-  
-  # when the id is detemined, update the sex and age value
-  #######################################################
-  observeEvent(input$id,{
-    s_id <- input$id
-    if (s_id!="") {
-      if(input$sex ==""){
-        updateSelectizeInput(session,"sex",
-                             options = list(
-                               placeholder = OASIS[OASIS$ID==s_id,]$sex,
-                               onInitialize = I('function() { this.setValue(""); }')
-                             ))
-      }
-      if(input$age ==""){
-        updateSelectizeInput(session,"age",
-                             options = list(
-                               placeholder = OASIS[OASIS$ID==s_id,]$age,
-                               onInitialize = I('function() { this.setValue(""); }')
-                             ))
-      }
-    }
-  })
-  
-  ## update the tabs when single_region selected
-  ######################################################
-  observeEvent(input$single_region,{
-    if(input$single_region==0)
-      hideTab(inputId ="tab",target = "DistributionPlot")
-    
-    if(input$single_region==01)
-      showTab(inputId ="tab",target = "DistributionPlot")
-  }
-  )
-  
-  
-  ## output OASIS table
-  #######################################################
-  output$table<- DT::renderDataTable({
-    input$ab
-    if(input$ab==0)
-      return()
-    
-    isolate({
-      if (input$sex=="" & input$age=="" & input$id=="" & input$com==0) {
-        return()
-      }
-      
-      out_Oasis_table <- OASIS
-      if(input$com==0){ ## when single person data
-        if(input$sex!=""){
-          out_Oasis_table<-out_Oasis_table[out_Oasis_table$sex==input$sex,]
-        }
-        if(input$age!=""){
-          out_Oasis_table<-out_Oasis_table[out_Oasis_table$age==input$age,]
-        }
-        if(input$id!=""){
-          out_Oasis_table<-out_Oasis_table[out_Oasis_table$ID==input$id,]
-        }
-      }else{ ## when composite data
-        if(input$sex!=""){
-          out_Oasis_table<-out_Oasis_table[out_Oasis_table$sex==input$sex,]
-        }
-        out_Oasis_table <- filter(out_Oasis_table,age<=max(input$age_range),age>=min(input$age_range))
-      }
-    })
-    DT::datatable(out_Oasis_table)
-  })
-  
   
   
   ## make the names pass to left and right brain
@@ -164,96 +46,108 @@ server<-function(input, output,session) {
   names(oasis_data)[4:77] <-paste("L_Region",1:74) 
   names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
+  
+######################################data preprocess######################################### 
+  
+  ## output the ui from the selected col
+  ##########################################
+  get_fil <- reactive({
+    input$fil
+  })
+  
+  u_oasis <- OASIS
+  
+  get_choice <- reactive({    # get the select col and return the selected date
+    col_input <- get_fil()
+    for (col in col_input) {
+      v <- input[[col]]
+      if(!(is.null(v)|| ""==v)){
+        u_oasis <- u_oasis[u_oasis[[col]]==v,]
+        
+      }
+    }
+    return(u_oasis)
+  })
+  
+  
+  output$kon <- renderUI({     # ouput the select UI
+    x <- vector("list",length=length(get_fil()))
+    for (ff in get_fil()) {
+      x <- append(x,list(
+        selectInput(
+          inputId = paste0(ff),
+          label = as.character(ff),
+          choices = c(" "="",sort(unique(get_choice()[[ff]]))),
+          selected = {
+            if (is.null(input[[ff]])||""==input[[ff]]){
+              ""
+            } else{
+              input[[ff]]
+            }
+          }
+        )
+      ))
+    }
+    return(x)
+  })
+  
+  ## output OASIS table
+  #######################################################
+  output$table<- DT::renderDataTable({
+    if(is.null(get_fil())||!(TRUE%in%lapply(get_fil(), function(x){
+      input[[x]]!=""
+    })))
+      return()
+    isolate({
+      DT::datatable(get_choice())
+    })
+  })
+  
+  
+  
+  ## update the tabs when single_region selected
+  ######################################################
+  observeEvent(input$single_region,{
+    if(input$single_region==0)
+      hideTab(inputId ="tab",target = "DistributionPlot")
+    
+    if(input$single_region==01)
+      showTab(inputId ="tab",target = "DistributionPlot")
+  })
+  
+  
+  
+  
+  
+  
+
+  
   ######################add mitte color und wert####################################  
   index_selection <- reactiveVal(1)
   observeEvent(input$add_mitte, {
     insertUI(
       selector = "#add_mitte",
       where = "beforeBegin",
-      ui = tagList(column(12,
-                          # selectInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
-                          #       label = paste("color_mitte", index_selection(), sep = "_"),
-                          #       choices = u_color_mitte,
-                          #      " "),
-                          colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
-                                      label = paste("color_mitte", index_selection(), sep = "_"),
-                                      "black"),
-                          numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
-                                       label = paste("wert_mitte", index_selection(), sep = "_"),
-                                       " ")
+      ui = tagList(column(
+        12,
+        colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
+                    label = paste("color_mitte", index_selection(), sep = "_"),
+                    "black"),
+        numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
+                     label = paste("wert_mitte", index_selection(), sep = "_"),
+                     " ")
       )
       ))
     new_index <- index_selection() + 1
     index_selection(new_index)
   })
   
-  observe(print(index_selection() > 1))
   observeEvent(input$remove_mitte, {
-    # remove inserted uis
-    # if (index_selection() > 0) {
-    #   lapply(1:index_selection(), 
-    #          function(x){
-    #            removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", x, ")" ))
-    #            
-    #          }
-    #   )
-    #   
-    #   
-    # }
-    # update from / to inputs
-    # reset reactive value
     removeUI(selector = paste0(".col-sm-12:has(#wert_mitte_", index_selection()-1, ")"))
     removeUI(selector = paste0(".col-sm-12:has(#color_mitte_", index_selection()-1, ")"))
-    
     index_selection(index_selection()-1)
     
   })
-  
-  
-  
-  
-  # observeEvent(input$remove_mitte, {
-  # remove inserted uis
-  
-  # if(index_selection() == 2){
-  #    removeUI(selector = "div:has(> #color_mitte_1)")
-  # removeUI(selector = "div:has(> #wert_mitte_1)")
-  # new_index <- index_selection() - 1
-  # index_selection(new_index)
-  # updateNumericInput(session, "wert_mitte_1",value = NA)
-  #}
-  # else if(index_selection() == 3){
-  #   removeUI(selector = "div:has(> #color_mitte_2)")
-  #   removeUI(selector = "div:has(> #wert_mitte_2)")
-  #   new_index <- index_selection() - 1
-  #   index_selection(new_index)
-  #   updateNumericInput(session, "wert_mitte_2",value = NA)
-  # 
-  # }
-  # else if(index_selection() == 4){
-  #   removeUI(selector = "div:has(> #color_mitte_3)")
-  #   removeUI(selector = "div:has(> #wert_mitte_3)")
-  #   new_index <- index_selection() - 1
-  #   index_selection(new_index)
-  #   updateNumericInput(session, "wert_mitte_3",value = NA)
-  # }
-  # else if(index_selection() == 5){
-  #   removeUI(selector = "div:has(> #color_mitte_4)")
-  #   removeUI(selector = "div:has(> #wert_mitte_4)")
-  #   new_index <- index_selection() - 1
-  #   index_selection(new_index)
-  #   updateNumericInput(session, "wert_mitte_4",value = NA)
-  # }
-  # else if(index_selection() == 6){
-  #   removeUI(selector = "div:has(> #color_mitte_5)")
-  #   removeUI(selector = "div:has(> #wert_mitte_5)")
-  #   new_index <- index_selection() - 1
-  #   index_selection(new_index)
-  #   updateNumericInput(session, "wert_mitte_5",value = NA)
-  # }
-  
-  
-  #  })
   
   
   
@@ -268,28 +162,43 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     isolate({
-      if (input$id =="" & input$com==0) {
-        return()
-      }
+      # if (input$ID =="" & input$com==0) {
+      #   return()
+      # }
       
-      if(input$id!=""){  ## when single person
-        auswahl_id <- input$id
-        auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+      if (nrow(get_choice())==1) {
+        auswahl_area <- get_choice()
         auswahl_area <- auswahl_area[-1:-3]
-        if(input$single_region==1){ ## when only one region to display
-          auswahl_region <- input$region
-          save<-auswahl_area[[auswahl_region]]
-          auswahl_area[1,]<-0.5
-          auswahl_area[[auswahl_region]]<-save
-        }
         auswahl_area <- t(auswahl_area)
         auswahl_data = data.frame(
           area = as.character(row.names(auswahl_area)),
           wert = as.numeric(auswahl_area[,1]),
           strings_As_Factors = FALSE
         )
+
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
+      
+      print(auswahl_data)      
+      
+      # if(input$id!=""){  ## when single person
+      #   auswahl_id <- input$ID
+      #   auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+      #   auswahl_area <- auswahl_area[-1:-3]
+      #   if(input$single_region==1){ ## when only one region to display
+      #     auswahl_region <- input$region
+      #     save<-auswahl_area[[auswahl_region]]
+      #     auswahl_area[1,]<-0.5
+      #     auswahl_area[[auswahl_region]]<-save
+      #   }
+      #   auswahl_area <- t(auswahl_area)
+      #   auswahl_data = data.frame(
+      #     area = as.character(row.names(auswahl_area)),
+      #     wert = as.numeric(auswahl_area[,1]),
+      #     strings_As_Factors = FALSE
+      #   )
+      #   auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+      # }
       
       if(input$com!=0){
         age_min = min(input$age_range)
@@ -362,7 +271,7 @@ server<-function(input, output,session) {
       return()
     isolate({
       region<-input$region
-      auswahl_id <- input$id
+      auswahl_id <- input$ID
       auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
       auswahl_area <- auswahl_area[-1:-3]
       auswahl_region <- input$region
@@ -381,41 +290,6 @@ server<-function(input, output,session) {
   })
   ##########################################
   
-  # observe(for (variable in input$fil) {
-  #   print(variable)
-  # })
-  get_fil <- reactive({
-    input$fil
-  })
-  output$kon <- renderUI({
-    x <- vector("list",length=length(get_fil()))
-    for (ff in get_fil()) {
-      x <- append(x,
-                  list(
-                    selectInput(inputId = paste0(ff),
-                                label = as.character(ff),
-                                choices = c(" "="",OASIS[[ff]])
-                    ))
-      )
-    }
-    return(x)
-  }
-  )
-  
-  
-  
-  
-  
-  ##########################################
-  # 暂时没用
-  # # progress report
-  # progress_load <- Progress$new(session,min = 1,max=15)
-  # on.exit(progress_load$close())
-  # progress_load$set(message = "3d Image loading")
-  # for (i in 1:15) {
-  #   progress_load$set(value = i)
-  #   Sys.sleep(1)
-  # }
-  
+
   
 }
