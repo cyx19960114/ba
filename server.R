@@ -73,19 +73,31 @@ server<-function(input, output,session) {
           u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
           u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]
         }
+        
+        if(as.character(col)=='sex'){
+          u_oasis <- u_oasis[u_oasis$sex==input$sex,]
+        }
         u_oasis
       }
     }
     return(u_oasis)
   })
   
+  observeEvent(input$com,
+               {
+                 if(input$com!=0){
+                   updateSelectInput(session,inputId = "fil",choices = names(OASIS)[-1])
+                 }else{
+                   updateSelectInput(session,inputId = "fil",choices = names(OASIS))
+                 }
+               })
+  
   
   output$kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
-    for (ff in get_fil()) {
-      print(min(get_choice()[[ff]]))
-      x <- append(x,list(
-        if(input$com==0){
+    if(input$com==0){
+      for (ff in get_fil()) {
+        x <- append(x,list(
           selectInput(
             inputId = paste0(ff),
             label = as.character(ff),
@@ -97,12 +109,23 @@ server<-function(input, output,session) {
                 input[[ff]]
               }
             }
-          )}else{
+          )
+        ))}
+    }else{
+      for (ff in get_fil()) {
+        x <- append(x,list(
+          if(as.character(ff)=="sex"){
+            selectInput("sex",label = "sex",choices = c("M","F"))
+          }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
                         min = min(OASIS[[ff]]),max=max(OASIS[[ff]]),
                         value = c(min(OASIS[[ff]]),max(OASIS[[ff]])))
           }
-      ))
+        ))
+       
+      }
+      x <- append(x,list( radioButtons("com_way","median or mean",choices = c("median","mean"),
+                                       selected = "median",inline = TRUE)))
     }
     return(x)
   })
@@ -177,12 +200,6 @@ server<-function(input, output,session) {
   
   #############################################################
   
-  # observe({
-  #   cc <- get_choice()
-  #   names(cc)[4:74] <- paste("Region",1:74)
-  #   print(names(cc))
-  #   })
-  
   ## make ggseg3d plot
   ######################################################
   output$ggseg3d<- renderPlotly({
@@ -215,16 +232,10 @@ server<-function(input, output,session) {
         )
         
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-      }
-      
-      
-      if(input$com!=0){
-        age_min = min(input$age_range)
-        age_max = max(input$age_range)
-        auswahl_area <- oasis_data[oasis_data$age<age_max & oasis_data$age>age_min,]
-        if(input$com_sex!="All"){
-          auswahl_area <- auswahl_area[auswahl_area$sex==input$com_sex,]
-        }
+      }else{
+        auswahl_area <- get_choice()
+        names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+        names(auswahl_area)[78:151] <- paste("R_Region",1:74)
         auswahl_area <- auswahl_area[-1:-3]
         
         if(input$com_way=="median"){

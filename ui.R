@@ -27,13 +27,16 @@ fluidPage(
       
       ## single person auswahl
       #################################
-      selectInput("fil",label = "Filtern",
-                  choices = names(OASIS),multiple = TRUE),
       # conditionalPanel(
-        # condition = "input.com==0",
-        uiOutput("kon"),
+      #   condition = "input.com==0",
+      #   selectInput("fil",label = "Filtern",
+      #               choices = names(OASIS),multiple = TRUE),
       # ),
       
+      selectInput("fil",label = "Filtern",
+                  choices = names(OASIS),multiple = TRUE),
+      
+      uiOutput("kon"),
       
       #############################
       ##composite display
