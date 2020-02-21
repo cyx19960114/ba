@@ -27,29 +27,30 @@ fluidPage(
       
       ## single person auswahl
       #################################
-      conditionalPanel(
-        condition = "input.com==0",
-        selectInput("fil",label = "Filtern",
-                    choices = names(OASIS),multiple = TRUE),
-        uiOutput("kon")
-      ),
+      selectInput("fil",label = "Filtern",
+                  choices = names(OASIS),multiple = TRUE),
+      # conditionalPanel(
+        # condition = "input.com==0",
+        uiOutput("kon"),
+      # ),
       
       
       #############################
       ##composite display
       #############################
-      conditionalPanel(
-        condition = "input.com==1",
-        selectizeInput(inputId = "com_sex",
-                       label = "waehlen Geschlecht:",
-                       choices = c("All",u_sex)
-        ),
-        sliderInput("age_range","Age Range",
-                    min = min(u_age),max=max(u_age),
-                    value = c(min(u_age),max(u_age))),
-        radioButtons("com_way","median or mean",choices = c("median","mean"),
-                     selected = "median",inline = TRUE)
-      ),
+      # conditionalPanel(
+      #   condition = "input.com==1",
+      #   uiOutput("kon_com"),
+      #   selectizeInput(inputId = "com_sex",
+      #                  label = "waehlen Geschlecht:",
+      #                  choices = c("All",u_sex)
+      #   ),
+      #   sliderInput("age_range","Age Range",
+      #               min = min(u_age),max=max(u_age),
+      #               value = c(min(u_age),max(u_age))),
+      #   radioButtons("com_way","median or mean",choices = c("median","mean"),
+      #                selected = "median",inline = TRUE)
+      # ),
       
       
       

@@ -40,6 +40,7 @@ if (interactive()) {
     output$kon <- renderUI({
       x <- vector("list",length=length(get_fil()))
       for (ff in get_fil()) {
+        print(min(get_choice()[[ff]]))
         x <- append(x,
                     list(
                       selectInput(inputId = paste0(ff),

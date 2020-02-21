@@ -43,11 +43,12 @@ server<-function(input, output,session) {
   #######################################################
   oasis_data <- OASIS
   region_names <- names(oasis_data)[-1:-3]
-  names(oasis_data)[4:77] <-paste("L_Region",1:74) 
-  names(oasis_data)[78:151] <-paste("R_Region",1:74)
+  # names(oasis_data)[4:77] <-paste("L_Region",1:74)
+  # names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
   
-######################################data preprocess######################################### 
+  ######################################data preprocess######################################### 
+  
   
   ## output the ui from the selected col
   ##########################################
@@ -55,15 +56,24 @@ server<-function(input, output,session) {
     input$fil
   })
   
-  u_oasis <- OASIS
+  u_oasis <- oasis_data
   
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
     for (col in col_input) {
-      v <- input[[col]]
-      if(!(is.null(v)|| ""==v)){
-        u_oasis <- u_oasis[u_oasis[[col]]==v,]
-        
+      if(input$com==0){
+        v <- input[[col]]
+        if(!(is.null(v)|| ""==v)){
+          u_oasis <- u_oasis[u_oasis[[col]]==v,]
+        }
+      }else{
+        if(!is.null(input[[paste0(col,"_range")]])){
+          v_min <- input[[paste0(col,"_range")]]
+          v_max <- input[[paste0(col,"_range")]]
+          u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+          u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]
+        }
+        u_oasis
       }
     }
     return(u_oasis)
@@ -73,19 +83,25 @@ server<-function(input, output,session) {
   output$kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
     for (ff in get_fil()) {
+      print(min(get_choice()[[ff]]))
       x <- append(x,list(
-        selectInput(
-          inputId = paste0(ff),
-          label = as.character(ff),
-          choices = c(" "="",sort(unique(get_choice()[[ff]]))),
-          selected = {
-            if (is.null(input[[ff]])||""==input[[ff]]){
-              ""
-            } else{
-              input[[ff]]
+        if(input$com==0){
+          selectInput(
+            inputId = paste0(ff),
+            label = as.character(ff),
+            choices = c(" "="",sort(unique(get_choice()[[ff]]))),
+            selected = {
+              if (is.null(input[[ff]])||""==input[[ff]]){
+                ""
+              } else{
+                input[[ff]]
+              }
             }
+          )}else{
+            sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
+                        min = min(OASIS[[ff]]),max=max(OASIS[[ff]]),
+                        value = c(min(OASIS[[ff]]),max(OASIS[[ff]])))
           }
-        )
       ))
     }
     return(x)
@@ -94,15 +110,22 @@ server<-function(input, output,session) {
   ## output OASIS table
   #######################################################
   output$table<- DT::renderDataTable({
-    if(is.null(get_fil())||!(TRUE%in%lapply(get_fil(), function(x){
-      input[[x]]!=""
-    })))
+    if(is.null(get_fil())
+       ||(!(TRUE%in%lapply(get_fil(), function(x){
+         input[[x]]!="" ||
+           input[[paste0(x,"_range")]]!=0
+       }))))
       return()
     isolate({
       DT::datatable(get_choice())
     })
   })
   
+  observe({
+    if ("age_range"%in%names(input)) {
+      print(input$age_range)
+    }
+  })
   
   
   ## update the tabs when single_region selected
@@ -120,7 +143,7 @@ server<-function(input, output,session) {
   
   
   
-
+  
   
   ######################add mitte color und wert####################################  
   index_selection <- reactiveVal(1)
@@ -154,6 +177,11 @@ server<-function(input, output,session) {
   
   #############################################################
   
+  # observe({
+  #   cc <- get_choice()
+  #   names(cc)[4:74] <- paste("Region",1:74)
+  #   print(names(cc))
+  #   })
   
   ## make ggseg3d plot
   ######################################################
@@ -168,37 +196,27 @@ server<-function(input, output,session) {
       
       if (nrow(get_choice())==1) {
         auswahl_area <- get_choice()
+        names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+        names(auswahl_area)[78:151] <- paste("R_Region",1:74)
         auswahl_area <- auswahl_area[-1:-3]
+        
+        if(input$single_region==1){ ## when only one region to display
+          auswahl_region <- input$region
+          save<-auswahl_area[[auswahl_region]]
+          auswahl_area[1,]<-0.5
+          auswahl_area[[auswahl_region]]<-save
+        }
         auswahl_area <- t(auswahl_area)
+        print(auswahl_area)
         auswahl_data = data.frame(
           area = as.character(row.names(auswahl_area)),
           wert = as.numeric(auswahl_area[,1]),
           strings_As_Factors = FALSE
         )
-
+        
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
       
-      print(auswahl_data)      
-      
-      # if(input$id!=""){  ## when single person
-      #   auswahl_id <- input$ID
-      #   auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
-      #   auswahl_area <- auswahl_area[-1:-3]
-      #   if(input$single_region==1){ ## when only one region to display
-      #     auswahl_region <- input$region
-      #     save<-auswahl_area[[auswahl_region]]
-      #     auswahl_area[1,]<-0.5
-      #     auswahl_area[[auswahl_region]]<-save
-      #   }
-      #   auswahl_area <- t(auswahl_area)
-      #   auswahl_data = data.frame(
-      #     area = as.character(row.names(auswahl_area)),
-      #     wert = as.numeric(auswahl_area[,1]),
-      #     strings_As_Factors = FALSE
-      #   )
-      #   auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-      # }
       
       if(input$com!=0){
         age_min = min(input$age_range)
@@ -290,6 +308,6 @@ server<-function(input, output,session) {
   })
   ##########################################
   
-
+  
   
 }
