@@ -232,7 +232,12 @@ server<-function(input, output,session) {
         )
         
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-      }else{
+      }else if(input$com==0){
+        showModal(modalDialog(title = "INPUT ERROR",
+                              "The inputed date should be one line or composite display selected"))
+        return()
+      }
+        else{
         auswahl_area <- get_choice()
         names(auswahl_area)[4:77] <- paste("L_Region",1:74)
         names(auswahl_area)[78:151] <- paste("R_Region",1:74)
@@ -280,7 +285,7 @@ server<-function(input, output,session) {
               atlas = desterieux_neu,
               colour = "wert", text = "beschreibung",
               surface = "LCBC",
-              palette = auswahl_color,
+              palette = sort(auswahl_wert),
               hemisphere = c("left","right"),
               na.alpha= .5) %>%
         pan_camera("left lateral") %>%
@@ -300,9 +305,20 @@ server<-function(input, output,session) {
       return()
     isolate({
       region<-input$region
-      auswahl_id <- input$ID
-      auswahl_area <- oasis_data[oasis_data$ID==auswahl_id,]
+      auswahl_area <- get_choice()
+      print(nrow(get_choice()))
+      if(nrow(get_choice())!=1){
+        return()
+      }
+      print(nrow(get_choice()))
+      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+      names(auswahl_area)[78:151] <- paste("R_Region",1:74)
       auswahl_area <- auswahl_area[-1:-3]
+      
+      names(oasis_data)[4:77] <- paste("L_Region",1:74)
+      names(oasis_data)[78:151] <- paste("R_Region",1:74)
+      oasis_data <- oasis_data[-1:-3]
+      
       auswahl_region <- input$region
       selectedData <- oasis_data[auswahl_region]
       colnames(selectedData) <- c("distributionPlot")
