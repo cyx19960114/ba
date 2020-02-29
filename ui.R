@@ -16,10 +16,10 @@ u_age <- sort(as.numeric(unique(id_sex_age$age)))
 u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
-u_color_obergrenze<-c("white","green","red","blue","yellow","cyan","purple")
-u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
-u_color_untergrenze<-c("white","green","red","blue","yellow","cyan","purple")
 u_hemisphere<-c("left","right")
+#u_color_obergrenze<-c("white","green","red","blue","yellow","cyan","purple")
+#u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
+#u_color_untergrenze<-c("white","green","red","blue","yellow","cyan","purple")
 
 fluidPage(
   titlePanel("ggseg3d"),
@@ -33,11 +33,6 @@ fluidPage(
       #   selectInput("fil",label = "Filtern",
       #               choices = names(OASIS),multiple = TRUE),
       # ),
-      
-      selectInput("fil",label = "Filtern",
-                  choices = names(OASIS),multiple = TRUE),
-      
-      uiOutput("kon"),
       
       #############################
       ##composite display
@@ -55,12 +50,19 @@ fluidPage(
       #   radioButtons("com_way","median or mean",choices = c("median","mean"),
       #                selected = "median",inline = TRUE)
       # ),
+  
+          
+      ######################################################
+      #################single person auswahl################
+      ######################################################
+      selectInput("fil",label = "Filtern",
+                  choices = names(OASIS),multiple = TRUE),
+      uiOutput("kon"),
       
       
-      
-      
-      ## single person auswahl
-      #################################
+      ######################################################
+      #################single person auswahl################
+      ######################################################
       conditionalPanel(
         condition = "input.com==0",
         checkboxInput("single_region","single region",FALSE),
@@ -68,42 +70,41 @@ fluidPage(
         conditionalPanel(
           condition = "input.single_region == 1",
           selectInput(inputId = "region",
-                      label = "waehlen Region",
+                      label = "Please select a single region",
                       choices = u_region)
         )
       ),
       
+  
+      
+      ######################################################
+      #######################Checkbox#######################
+      ######################################################
       checkboxInput(inputId="com",label="composite display",value=FALSE),
-      
-      
-      
-      #############################
-      ##composite display
-      #############################
+      checkboxInput("farbe_wert","color and value",FALSE),
+      checkboxInput("hemisphere","hemisphere",FALSE),
       
       
       
       
-      
-      
-      
-      
-      checkboxInput("farbe_wert","Farbe und Wert",FALSE),
-      checkboxInput("hemisphere","Hemisphere",FALSE),
-      #########################hemisphere
+      ######################################################
+      #####################Hemisphere#######################
+      ######################################################
       conditionalPanel(
         condition = "input.hemisphere == 1",
          selectInput(inputId = "select_hemisphere",
-                    label = "waehlen hemisphere",
+                    label = "Choose Hemisphere",
                    choices = u_hemisphere,
                    multiple = TRUE,
                    "left"
                     ),
-        
-        
       ),
+ 
       
-      ##waehlen color und wert(grenze)
+      
+           
+      ######################################################
+      ######Choose colors and values for 3d brain maps######
       ######################################################
       conditionalPanel(
         condition = "input.farbe_wert == 1",
@@ -111,35 +112,36 @@ fluidPage(
         #            label = "waehlen color_obergrenze",
         #           choices = u_color_obergrenze,
         #          "red"),
-        colourInput("color_obergrenze", "waehlen color_obergrenze", "red"),
+        colourInput("color_obergrenze", "Please select the color of the upper bound", "red"),
         numericInput(inputId = 'wert_obergrenze',
-                     label = 'wert_obergrenze',
+                     label = 'Please choose a value for the upper bound',
                      4.2),
         # selectInput(inputId = "color_untergrenze",
         #       label = "waehlen color_untergrenz",
         #     choices = u_color_untergrenze,
         #    "blue"),
-        colourInput("color_untergrenze", "waehlen color_untergrenze", "blue"),
+        colourInput("color_untergrenze", "Please select the color of the lower bound", "blue"),
         numericInput(inputId = 'wert_untergrenze',
-                     label = 'wert_untergrenze',
+                     label = 'Please choose a value for the lower bound',
                      2),
-        actionButton("add_mitte", "Add wert_mitte"),
+        actionButton("add_mitte", "Add new values and colors"),
+        hr(),
         actionButton("remove_mitte","Remove"),
         hr()
         
       ),
-      #########################################################
       
+      
+      
+      
+      ######################################################
+      ########Reset button and generate image button########
+      ######################################################
+      actionButton("ab","Generate brain map"),
       tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
-      
-      actionButton("ab","3d brain zeigen"),
-      
       
       
     ),
-    
-    
-    
     
     mainPanel(
       tabsetPanel(type = "tabs",id = "tab",
