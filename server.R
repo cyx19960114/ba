@@ -18,9 +18,13 @@ options(warn = -1)
 server<-function(input, output,session) {
   
   
-  ## make the names pass to left and right brain
-  #######################################################
+  ######################################data preprocess######################################### 
   
+  
+  
+  #######################################################
+  ######make the names pass to left and right brain######
+  #######################################################
   desterieux_neu<-desterieux_3d # load desterieux_3d
   for (j in 1:6) {
     if (desterieux_neu[[3]][[j]] == "left") {
@@ -40,7 +44,10 @@ server<-function(input, output,session) {
     }
   }
   
-  ## transform the names of OASIS
+  
+  
+  #######################################################
+  #############transform the names of OASIS##############
   #######################################################
   oasis_data <- OASIS
   region_names <- names(oasis_data)[-1:-3]
@@ -48,11 +55,10 @@ server<-function(input, output,session) {
   # names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
   
-  ######################################data preprocess######################################### 
   
-  
-  ## output the ui from the selected col
-  ##########################################
+  #######################################################
+  ##########output the ui from the selected col##########
+  #######################################################
   get_fil <- reactive({
     input$fil
   })
@@ -131,7 +137,10 @@ server<-function(input, output,session) {
     return(x)
   })
   
-  ## output OASIS table
+  
+  
+  #######################################################
+  ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
     if(is.null(get_fil())
@@ -151,9 +160,11 @@ server<-function(input, output,session) {
     }
   })
   
+ 
   
-  ## update the tabs when single_region selected
-  ######################################################
+  #######################################################
+  ######update the tabs when single_region selected######
+  ####################################################### 
   observeEvent(input$single_region,{
     if(input$single_region==0)
       hideTab(inputId ="tab",target = "DistributionPlot")
@@ -164,12 +175,9 @@ server<-function(input, output,session) {
   
   
   
-  
-  
-  
-  
-  
-  ######################add mitte color und wert####################################  
+  #######################################################
+  ########Add new values and colors(UI)##################
+  #######################################################
   index_selection <- reactiveVal(1)
   observeEvent(input$add_mitte, {
     insertUI(
@@ -178,10 +186,10 @@ server<-function(input, output,session) {
       ui = tagList(column(
         12,
         colourInput(inputId = paste("color_mitte", index_selection(), sep = "_"),
-                    label = paste("color_mitte", index_selection(), sep = "_"),
+                    label = paste("new colors", index_selection()),
                     "black"),
         numericInput(inputId = paste("wert_mitte", index_selection(), sep = "_"),
-                     label = paste("wert_mitte", index_selection(), sep = "_"),
+                     label = paste("new values ", index_selection()),
                      " ")
       )
       ))
@@ -198,11 +206,9 @@ server<-function(input, output,session) {
   
   
   
-  
-  #############################################################
-  
-  ## make ggseg3d plot
-  ######################################################
+  #######################################################
+  ################Generate 3D brain map##################
+  #######################################################
   output$ggseg3d<- renderPlotly({
     input$ab  
     if(input$ab==0)
@@ -262,10 +268,11 @@ server<-function(input, output,session) {
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
       
-      ####waehlen color und wert(grenze)######################
-      # auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte_1,input$wert_mitte_2,input$wert_mitte_3,input$wert_mitte_4,input$wert_mitte_5,input$wert_obergrenze)
-      # names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte_1,input$color_mitte_2,input$color_mitte_3,input$color_mitte_4,input$color_mitte_5,input$color_obergrenze)
-      # auswahl_color<-auswahl_wert
+      
+      
+      ###################################
+      #######new values and colors#######
+      ###################################
       auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
       auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
       print(input[[paste("wert_mitte", 1, sep = "_")]])
@@ -281,11 +288,17 @@ server<-function(input, output,session) {
       print(auswahl_wert)
       
       
-      ######################################select_hemisphere######
+      
+      ###################################
+      ########select_hemisphere##########
+      ###################################
       auswahl_hemisphere<-input$select_hemisphere
     
-      ############################
-      # ggseg
+      
+      
+      ###################################
+      #############ggseg3d###############
+      ###################################
       ggseg3d(.data = auswahl_data,
               atlas = desterieux_neu,
               colour = "wert", text = "beschreibung",
@@ -301,8 +314,11 @@ server<-function(input, output,session) {
   })
   
   
-  ##distributionPlot when single person
-  ################################
+  
+  
+  ###########################################
+  #####distributionPlot when single person###
+  ###########################################
   output$distributionPlot<-renderPlot({
     if(input$single_region==0)
       return()
@@ -338,8 +354,5 @@ server<-function(input, output,session) {
     })
     
   })
-  ##########################################
-  
-  
   
 }
