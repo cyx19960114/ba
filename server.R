@@ -1,3 +1,6 @@
+# install.packages("remotes")
+# remotes::install_github("LCBC-UiO/ggseg", build_vignettes = TRUE)
+# remotes::install_github("LCBC-UiO/ggseg3d", build_vignettes = TRUE)
 library(shiny)
 library(ggseg)
 library(dplyr)
@@ -43,8 +46,6 @@ server<-function(input, output,session) {
   #######################################################
   oasis_data <- OASIS
   region_names <- names(oasis_data)[-1:-3]
-  # names(oasis_data)[4:77] <-paste("L_Region",1:74)
-  # names(oasis_data)[78:151] <-paste("R_Region",1:74)
   
   
   ######################################data preprocess######################################### 
@@ -262,9 +263,7 @@ server<-function(input, output,session) {
       }
       
       ####waehlen color und wert(grenze)######################
-      # auswahl_wert<- c(input$wert_untergrenze,input$wert_mitte_1,input$wert_mitte_2,input$wert_mitte_3,input$wert_mitte_4,input$wert_mitte_5,input$wert_obergrenze)
-      # names(auswahl_wert)<-c(input$color_untergrenze, input$color_mitte_1,input$color_mitte_2,input$color_mitte_3,input$color_mitte_4,input$color_mitte_5,input$color_obergrenze)
-      # auswahl_color<-auswahl_wert
+      ########################################################
       auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
       auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
       print(input[[paste("wert_mitte", 1, sep = "_")]])
