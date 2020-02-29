@@ -16,6 +16,7 @@ library(colourpicker)
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
 id_sex_age <- OASIS[,1:3]
+options(warn = -1)
 
 server<-function(input, output,session) {
   
@@ -278,6 +279,10 @@ server<-function(input, output,session) {
       names(auswahl_wert) <- auswahl_color
       print(auswahl_wert)
       
+      
+      ######################################select_hemisphere######
+      auswahl_hemisphere<-input$select_hemisphere
+    
       ############################
       # ggseg
       ggseg3d(.data = auswahl_data,
@@ -285,7 +290,7 @@ server<-function(input, output,session) {
               colour = "wert", text = "beschreibung",
               surface = "LCBC",
               palette = sort(auswahl_wert),
-              hemisphere = c("left","right"),
+              hemisphere = auswahl_hemisphere,
               na.alpha= .5) %>%
         pan_camera("left lateral") %>%
         remove_axes()

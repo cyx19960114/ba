@@ -19,6 +19,7 @@ u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 u_color_obergrenze<-c("white","green","red","blue","yellow","cyan","purple")
 u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
 u_color_untergrenze<-c("white","green","red","blue","yellow","cyan","purple")
+u_hemisphere<-c("left","right")
 
 fluidPage(
   titlePanel("ggseg3d"),
@@ -88,6 +89,20 @@ fluidPage(
       
       
       checkboxInput("farbe_wert","Farbe und Wert",FALSE),
+      checkboxInput("hemisphere","Hemisphere",FALSE),
+      #########################hemisphere
+      conditionalPanel(
+        condition = "input.hemisphere == 1",
+         selectInput(inputId = "select_hemisphere",
+                    label = "waehlen hemisphere",
+                   choices = u_hemisphere,
+                   multiple = TRUE,
+                   "left"
+                    ),
+        
+        
+      ),
+      
       ##waehlen color und wert(grenze)
       ######################################################
       conditionalPanel(
@@ -129,7 +144,7 @@ fluidPage(
     mainPanel(
       tabsetPanel(type = "tabs",id = "tab",
                   tabPanel("Table",DT::dataTableOutput("table")),
-                  tabPanel("3D",plotlyOutput("ggseg3d")),
+                  tabPanel("3D",plotlyOutput("ggseg3d",height = "700px")),
                   tabPanel("DistributionPlot",plotOutput("distributionPlot")))
     )
     
