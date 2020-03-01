@@ -151,7 +151,15 @@ server<-function(input, output,session) {
        }))))
       return()
     isolate({
-      DT::datatable(get_choice())
+      ##change the color boundary automatically
+      ausgewaehlte_daten <- get_choice()
+      wert<-ausgewaehlte_daten[-1:-3]
+      max_wert<-max(wert)
+      min_wert<-min(wert)
+      updateNumericInput(session, "wert_obergrenze", value = max_wert)
+      updateNumericInput(session, "wert_untergrenze", value = min_wert)
+      ##output table
+      DT::datatable(ausgewaehlte_daten)
     })
   })
   
@@ -210,17 +218,15 @@ server<-function(input, output,session) {
   ###############Automatic update values#################
   #######################################################
   
-  observeEvent(input$ID, {
+  # observeEvent(input$ID, {
+  #   ausgewaehlte_daten <- get_choice()
+  #   wert<-ausgewaehlte_daten[-1:-3]
+  #   max_wert<-max(wert)
+  #   min_wert<-min(wert)
+  #   updateNumericInput(session, "wert_obergrenze", value = max_wert)
+  #   updateNumericInput(session, "wert_untergrenze", value = min_wert)
+  # })
   
-    ausgewaehlte_daten <- get_choice()
-    wert<-ausgewaehlte_daten[-1:-3]
-    max_wert<-max(wert)
-    min_wert<-min(wert)
-    updateNumericInput(session, "wert_obergrenze", value = max_wert)
-    updateNumericInput(session, "wert_untergrenze", value = min_wert)
-    
-    
-  })
 
   
   

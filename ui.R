@@ -17,9 +17,6 @@ u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 u_hemisphere<-c("left","right")
-#u_color_obergrenze<-c("white","green","red","blue","yellow","cyan","purple")
-#u_color_mitte<-c("white","green","red","blue","yellow","cyan","purple")
-#u_color_untergrenze<-c("white","green","red","blue","yellow","cyan","purple")
 
 fluidPage(
   titlePanel("ggseg3d"),
