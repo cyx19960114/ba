@@ -123,7 +123,7 @@ fluidPage(
         colourInput("color_untergrenze", "Please select the color of the lower bound", "blue"),
         numericInput(inputId = 'wert_untergrenze',
                      label = 'Please choose a value for the lower bound',
-                     2),
+                     1.5),
         actionButton("add_mitte", "Add new values and colors"),
         hr(),
         actionButton("remove_mitte","Remove"),

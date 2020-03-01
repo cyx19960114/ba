@@ -206,6 +206,23 @@ server<-function(input, output,session) {
   })
   
   
+  #######################################################
+  ###############Automatic update values#################
+  #######################################################
+  
+  observeEvent(input$ID, {
+  
+    ausgewaehlte_daten <- get_choice()
+    wert<-ausgewaehlte_daten[-1:-3]
+    max_wert<-max(wert)
+    min_wert<-min(wert)
+    updateNumericInput(session, "wert_obergrenze", value = max_wert)
+    updateNumericInput(session, "wert_untergrenze", value = min_wert)
+    
+    
+  })
+
+  
   
   #######################################################
   ################Generate 3D brain map##################
