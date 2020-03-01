@@ -130,7 +130,7 @@ server<-function(input, output,session) {
                         value = c(min(OASIS[[ff]]),max(OASIS[[ff]])))
           }
         ))
-        
+       
       }
       x <- append(x,list( radioButtons("com_way","median or mean",choices = c("median","mean"),
                                        selected = "median",inline = TRUE)))
@@ -161,7 +161,7 @@ server<-function(input, output,session) {
     }
   })
   
-  
+ 
   
   #######################################################
   ######update the tabs when single_region selected######
@@ -206,14 +206,7 @@ server<-function(input, output,session) {
   })
   
   
-  observeEvent(input$ab,{
-    insertTab(inputId = "tab",
-              tabPanel("3D",plotlyOutput("ggseg3d",height = paste(input$zoom*100,"px",sep = ""))),
-              target = "Table",
-              position = "after")
-  })
   
-  observe(print(paste(input$zoom*100,"px",sep = "")))
   #######################################################
   ################Generate 3D brain map##################
   #######################################################
@@ -222,6 +215,9 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     isolate({
+      # if (input$ID =="" & input$com==0) {
+      #   return()
+      # }
       
       if (nrow(get_choice())==1) {
         auswahl_area <- get_choice()
@@ -236,7 +232,7 @@ server<-function(input, output,session) {
           auswahl_area[[auswahl_region]]<-save
         }
         auswahl_area <- t(auswahl_area)
-        # print(auswahl_area)
+        print(auswahl_area)
         auswahl_data = data.frame(
           area = as.character(row.names(auswahl_area)),
           wert = as.numeric(auswahl_area[,1]),
@@ -249,7 +245,7 @@ server<-function(input, output,session) {
                               "The inputed date should be one line or composite display selected"))
         return()
       }
-      else{
+        else{
         auswahl_area <- get_choice()
         names(auswahl_area)[4:77] <- paste("L_Region",1:74)
         names(auswahl_area)[78:151] <- paste("R_Region",1:74)
@@ -273,26 +269,26 @@ server<-function(input, output,session) {
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
       
-      
+
       
       
       ###################################
       #######new values and colors#######
       ###################################
-      
+
       auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
       auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
-      # print(input[[paste("wert_mitte", 1, sep = "_")]])
+      print(input[[paste("wert_mitte", 1, sep = "_")]])
       if (1<index_selection()) {
-        # print("aaaa")
-        # print(index_selection())
+        print("aaaa")
+        print(index_selection())
         for (i in 1:(index_selection()-1)) {
           auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
           auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
         }
       }
       names(auswahl_wert) <- auswahl_color
-      # print(auswahl_wert)
+      print(auswahl_wert)
       
       
       
@@ -300,7 +296,7 @@ server<-function(input, output,session) {
       ########select_hemisphere##########
       ###################################
       auswahl_hemisphere<-input$select_hemisphere
-      
+    
       
       
       ###################################
@@ -315,10 +311,10 @@ server<-function(input, output,session) {
               na.alpha= .5) %>%
         pan_camera("left lateral") %>%
         remove_axes()
+      
+      
     })
-  }
-  
-  )
+  })
   
   
   
@@ -359,6 +355,7 @@ server<-function(input, output,session) {
              aes(x = distributionPlot)
       ) + geom_density() + geom_point(aes(save,0),col="red", size=8)
     })
+    
   })
   
 }
