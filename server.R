@@ -70,8 +70,6 @@ server<-function(input, output,session) {
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
     u_oasis <- oasis_data
-    print("数据重置")
-    i=1
     for (col in col_input) {
       if(input$com==0){
         v <- input[[col]]
@@ -81,28 +79,27 @@ server<-function(input, output,session) {
               u_oasis <- u_oasis[u_oasis$sex==input$sex,]
             }}
           else{
-          u_oasis <- u_oasis[u_oasis[[col]]==v,]
-        }}
+            u_oasis <- u_oasis[u_oasis[[col]]==v,]
+          }}
       }else{
-
-        
         if(as.character(col)=='sex'){
           if(input$sex!="All"){
-          u_oasis <- u_oasis[u_oasis$sex==input$sex,]
-        }else{
-          if(!is.null(input[[paste0(col,"_range")]])){
-            v_min <- min(input[[paste0(col,"_range")]])
-            v_max <- max(input[[paste0(col,"_range")]])
-            u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-            u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
+            u_oasis <- u_oasis[u_oasis$sex==input$sex,]
+          }
         }
-        }}
-        u_oasis
+        if(!is.null(input[[paste0(col,"_range")]])){
+          v_min <- min(input[[paste0(col,"_range")]])
+          v_max <- max(input[[paste0(col,"_range")]])
+          u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+          u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
+        
       }
+      u_oasis
+    }
     
-    print("-----------")
     return(u_oasis)
   })
+  
   
   observeEvent(input$com,
                {
@@ -124,30 +121,29 @@ server<-function(input, output,session) {
                         label = "sex",
                         choices = c("All","M","F"),
                         selected = {
-              if (is.null(input[[ff]])||""==input[[ff]]){
-                ""
-              } else{
-                input[[ff]]
-              }
-            })
+                          if (is.null(input[[ff]])||""==input[[ff]]){
+                            ""
+                          } else{
+                            input[[ff]]
+                          }
+                        })
           }
           else{
-          selectInput(
-            inputId = paste0(ff),
-            label = as.character(ff),
-            choices = c(" "="",sort(unique(get_choice()[[ff]]))),
-            selected = {
-              if (is.null(input[[ff]])||""==input[[ff]]){
-                ""
-              } else{
-                input[[ff]]
+            selectInput(
+              inputId = paste0(ff),
+              label = as.character(ff),
+              choices = c(" "="",sort(unique(get_choice()[[ff]]))),
+              selected = {
+                if (is.null(input[[ff]])||""==input[[ff]]){
+                  ""
+                } else{
+                  input[[ff]]
+                }
               }
-            }
-          )}
+            )}
         ))}
     }else{
       for (ff in get_fil()) {
-        print(length(get_fil()))
         x <- append(x,list(
           if(as.character(ff)=="sex"){
             selectInput("sex",label = "sex",choices = c("All","M","F"),selected = input$sex)
@@ -157,7 +153,6 @@ server<-function(input, output,session) {
                         value = c(min(oasis_data[[ff]]),max(oasis_data[[ff]])))
           }
         ))
-        print(length(x))
       }
       x <- append(x,list( radioButtons("com_way","Formula Mode",choices = c("median","mean","SD"),
                                        selected = "median",inline = TRUE)))
@@ -165,30 +160,41 @@ server<-function(input, output,session) {
     return(x)
   })
   
+  aus_daten <- reactive({
+    if(!is.null(input$com_way)){
+      switch (as.vector(input$com_way[[1]]),
+              "median" = "median",
+              "mean" = "mean",
+              "SD"= "sd"
+      )
+    }
+  })
+  
+  
+  
+  
   
   
   #######################################################
   ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
-    # if(is.null(get_fil())
-    #    ||(!(TRUE%in%lapply(get_fil(), function(x){
-    #      input[[x]]!="" ||
-    #        input[[paste0(x,"_range")]]!=0
-    #    }))))
-    #   return()
-    # isolate({
-    ##change the color boundary automatically
-    ausgewaehlte_daten <- get_choice()
-    wert<-ausgewaehlte_daten[-1:-3]
-    # print(class(wert))
-    # max_wert<-max(wert)
-    # min_wert<-min(wert)
-    # updateNumericInput(session, "wert_obergrenze", value = max_wert)
-    # updateNumericInput(session, "wert_untergrenze", value = min_wert)
-    ##output table
-    DT::datatable(ausgewaehlte_daten)
-    # })
+    if(is.null(get_fil())
+       ||(!(TRUE%in%lapply(get_fil(), function(x){
+         input[[x]]!="" ||
+           input[[paste0(x,"_range")]]!=0
+       }))))
+      return()
+    isolate({
+      ##change the color boundary automatically
+      ausgewaehlte_daten <- get_choice()
+      wert<-ausgewaehlte_daten[-1:-3]
+      max_wert<-max(wert)
+      min_wert<-min(wert)
+      
+      #output table
+      DT::datatable(ausgewaehlte_daten)
+    })
   })
   
   
@@ -248,94 +254,72 @@ server<-function(input, output,session) {
     input$ab  
     if(input$ab==0)
       return()
+    
+    # if (input$ID =="" & input$com==0) {
+    #   return()
+    # }
+    
+    auswahl_area <- get_choice()
+    names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+    names(auswahl_area)[78:151] <- paste("R_Region",1:74)
+    auswahl_area <- auswahl_area[-1:-3]
+    if (nrow(get_choice())==1) {
+      if(input$single_region==1){ ## when only one region to display
+        auswahl_region <- input$region
+        save<-auswahl_area[[auswahl_region]]
+        auswahl_area[1,]<-0.5
+        auswahl_area[[auswahl_region]]<-save
+      }
+    }else if(input$com==0){
+      showModal(modalDialog(title = "INPUT ERROR",
+                            "The inputed date should be one line or composite display selected"))
+      return()
+    }
+    else{
+      auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
+      auswahl_area <- auswahl_area[1,]
+    }
+    
+    auswahl_area <- t(auswahl_area)
+    auswahl_data <- data.frame(
+      area = as.character(row.names(auswahl_area)),
+      wert = auswahl_area[,1],
+      strings_As_Factors = FALSE
+    )
+    auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+    
+    updateNumericInput(session, "wert_obergrenze", value = max(auswahl_area))
+    updateNumericInput(session, "wert_untergrenze", value = min(auswahl_area))
+    
+    
+    
+    ###################################
+    #######new values and colors#######
+    ###################################
+    
+    auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
+    auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
+    if (1<index_selection()) {
+      for (i in 1:(index_selection()-1)) {
+        auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
+        auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
+      }
+    }
+    names(auswahl_wert) <- auswahl_color
+    
+    
+    
+    ###################################
+    ########select_hemisphere##########
+    ###################################
+    auswahl_hemisphere<-input$select_hemisphere
+    
+    
+    
+    ###################################
+    #############ggseg3d###############
+    ###################################
     isolate({
-      # if (input$ID =="" & input$com==0) {
-      #   return()
-      # }
-      
-      if (nrow(get_choice())==1) {
-        auswahl_area <- get_choice()
-        names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-        names(auswahl_area)[78:151] <- paste("R_Region",1:74)
-        auswahl_area <- auswahl_area[-1:-3]
-        
-        if(input$single_region==1){ ## when only one region to display
-          auswahl_region <- input$region
-          save<-auswahl_area[[auswahl_region]]
-          auswahl_area[1,]<-0.5
-          auswahl_area[[auswahl_region]]<-save
-        }
-        auswahl_area <- t(auswahl_area)
-        print(auswahl_area)
-        auswahl_data = data.frame(
-          area = as.character(row.names(auswahl_area)),
-          wert = as.numeric(auswahl_area[,1]),
-          strings_As_Factors = FALSE
-        )
-        
-        auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-      }else if(input$com==0){
-        showModal(modalDialog(title = "INPUT ERROR",
-                              "The inputed date should be one line or composite display selected"))
-        return()
-      }
-      else{
-        auswahl_area <- get_choice()
-        names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-        names(auswahl_area)[78:151] <- paste("R_Region",1:74)
-        auswahl_area <- auswahl_area[-1:-3]
-        
-        if(input$com_way=="median"){
-          auswahl_area[1,] <- apply(auswahl_area, 2, median)
-          auswahl_area <- auswahl_area[1,]
-        }
-        
-        if (input$com_way=="mean") {
-          auswahl_area[1,] <- apply(auswahl_area, 2, mean)
-          auswahl_area <- auswahl_area[1,]
-        }
-        auswahl_area <- t(auswahl_area)
-        auswahl_data <- data.frame(
-          area = as.character(row.names(auswahl_area)),
-          wert = auswahl_area[,1],
-          strings_As_Factors = FALSE
-        )
-        auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
-      }
-      
-      
-      
-      
-      ###################################
-      #######new values and colors#######
-      ###################################
-      
-      auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
-      auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
-      print(input[[paste("wert_mitte", 1, sep = "_")]])
-      if (1<index_selection()) {
-        print("aaaa")
-        print(index_selection())
-        for (i in 1:(index_selection()-1)) {
-          auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
-          auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
-        }
-      }
-      names(auswahl_wert) <- auswahl_color
-      print(auswahl_wert)
-      
-      
-      
-      ###################################
-      ########select_hemisphere##########
-      ###################################
-      auswahl_hemisphere<-input$select_hemisphere
-      
-      
-      
-      ###################################
-      #############ggseg3d###############
-      ###################################
       gg <- ggseg3d(.data = auswahl_data,
                     atlas = desterieux_neu,
                     colour = "wert", text = "beschreibung",
@@ -348,7 +332,7 @@ server<-function(input, output,session) {
         remove_axes()
       
       colours_p <- get_palette(sort(auswahl_wert))
-      dt_leg <- dplyr::mutate(f, x = 0, y = 0, z = 0)
+      dt_leg <- dplyr::mutate(colours_p, x = 0, y = 0, z = 0)
       gg = plotly::add_trace(gg, data = dt_leg, x = ~x, y = ~y,
                              z = ~z, intensity = ~values,
                              colorscale = unname(dt_leg[,c("norm", "hex")]),
@@ -372,11 +356,9 @@ server<-function(input, output,session) {
     isolate({
       region<-input$region
       auswahl_area <- get_choice()
-      print(nrow(get_choice()))
       if(nrow(get_choice())!=1){
         return()
       }
-      print(nrow(get_choice()))
       names(auswahl_area)[4:77] <- paste("L_Region",1:74)
       names(auswahl_area)[78:151] <- paste("R_Region",1:74)
       auswahl_area <- auswahl_area[-1:-3]
