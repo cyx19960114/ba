@@ -11,6 +11,8 @@ library(plotly)
 library(ggplot2)
 library(readxl)
 library(colourpicker)
+library(scales)
+source("title_fun.R")
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
@@ -325,17 +327,25 @@ server<-function(input, output,session) {
       ###################################
       #############ggseg3d###############
       ###################################
-      ggseg3d(.data = auswahl_data,
+      gg <- ggseg3d(.data = auswahl_data,
               atlas = desterieux_neu,
               colour = "wert", text = "beschreibung",
               surface = "LCBC",
               palette = sort(auswahl_wert),
               hemisphere = auswahl_hemisphere,
-              na.alpha= .5) %>%
+              na.alpha= .5,
+              show.legend = FALSE) %>%
         pan_camera("left lateral") %>%
         remove_axes()
       
+      colours_p <- get_palette(sort(auswahl_wert))
+      dt_leg <- dplyr::mutate(f, x = 0, y = 0, z = 0)
+      gg = plotly::add_trace(gg, data = dt_leg, x = ~x, y = ~y,
+                            z = ~z, intensity = ~values,
+                            colorscale = unname(dt_leg[,c("norm", "hex")]),
+                            colorbar=list(title=list(text="mm")), type = "mesh3d")
       
+      gg
     })
   })
   
