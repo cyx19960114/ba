@@ -76,19 +76,18 @@ server<-function(input, output,session) {
       if(input$com==0){
         v <- input[[col]]
         if(!(is.null(v)|| ""==v)){
+          if(as.character(col)=='sex'){
+            if(input$sex!="All"){
+              u_oasis <- u_oasis[u_oasis$sex==input$sex,]
+            }}
+          else{
           u_oasis <- u_oasis[u_oasis[[col]]==v,]
-        }
+        }}
       }else{
-        #   if(!is.null(input[[paste0(col,"_range")]])){
-        #     v_min <- min(input[[paste0(col,"_range")]])
-        #     v_max <- max(input[[paste0(col,"_range")]])
-        #     print(i)
-        #     i=i+1
-        #     u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-        #     u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]
-        #   }
+
         
         if(as.character(col)=='sex'){
+          if(input$sex!="All"){
           u_oasis <- u_oasis[u_oasis$sex==input$sex,]
         }else{
           if(!is.null(input[[paste0(col,"_range")]])){
@@ -97,9 +96,10 @@ server<-function(input, output,session) {
             u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
             u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
         }
+        }}
         u_oasis
       }
-    }
+    
     print("-----------")
     return(u_oasis)
   })
@@ -119,6 +119,19 @@ server<-function(input, output,session) {
     if(input$com==0){
       for (ff in get_fil()) {
         x <- append(x,list(
+          if(as.character(ff)=="sex"){
+            selectInput("sex",
+                        label = "sex",
+                        choices = c("All","M","F"),
+                        selected = {
+              if (is.null(input[[ff]])||""==input[[ff]]){
+                ""
+              } else{
+                input[[ff]]
+              }
+            })
+          }
+          else{
           selectInput(
             inputId = paste0(ff),
             label = as.character(ff),
@@ -130,7 +143,7 @@ server<-function(input, output,session) {
                 input[[ff]]
               }
             }
-          )
+          )}
         ))}
     }else{
       for (ff in get_fil()) {
