@@ -102,14 +102,14 @@ server<-function(input, output,session) {
   })
   
   
-  observeEvent(input$com,
-               {
-                 if(input$com!=0){
-                   updateSelectInput(session,inputId = "fil",choices = names(OASIS)[-1])
-                 }else{
-                   updateSelectInput(session,inputId = "fil",choices = names(OASIS))
-                 }
-               })
+  # observeEvent(input$com,
+  #              {
+  #                if(input$com!=0){
+  #                  updateSelectInput(session,inputId = "fil",choices = names(OASIS)[-1])
+  #                }else{
+  #                  updateSelectInput(session,inputId = "fil",choices = names(OASIS))
+  #                }
+  #              })
   
   
   output$kon <- renderUI({     # ouput the select UI
@@ -160,7 +160,8 @@ server<-function(input, output,session) {
           }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
                         min = min(oasis_data[[ff]]),max=max(oasis_data[[ff]]),
-                        value = c(min(oasis_data[[ff]]),max(oasis_data[[ff]])))
+                        value = c(min(oasis_data[[ff]]),max(oasis_data[[ff]]))
+            )
           }
         ))
       }
@@ -171,7 +172,11 @@ server<-function(input, output,session) {
   })
   
   
-  
+  observe(if(!is.null(input$age_range)){
+    print(input$age_range)
+    
+  }
+  )
   aus_daten <- reactive({  ## get the composite way 
     if(!is.null(input$com_way)){
       switch (as.vector(input$com_way[[1]]),
@@ -191,12 +196,19 @@ server<-function(input, output,session) {
   ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
-    if(is.null(get_fil())
-       ||(!(TRUE%in%lapply(get_fil(), function(x){
-         input[[x]]!="" ||
-           input[[paste0(x,"_range")]]!=0
-       }))))
-      return()
+    # if(is.null(get_fil())
+    #    ||(!(TRUE%in%lapply(get_fil(), function(x){
+    #      input[[x]]!="" ||
+    #        input[[paste0(x,"_range")]]!=0
+    #    }))))
+    #   return()
+    if(is.null(get_fil())){return()}
+    lapply(get_fil(), function(x){
+      input[[x]]!=""
+    })
+    lapply(get_fil(), function(x){
+      input[[paste0(x,"_range")]]!=0
+    })
     if(is.null(input$com_way)){}
     isolate({
       ##change the color boundary automatically
