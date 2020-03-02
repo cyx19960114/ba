@@ -83,6 +83,7 @@ server<-function(input, output,session) {
           }}
       }else{
         if(as.character(col)=='sex'){
+          print(input$sex)
           if(input$sex!="All"){
             u_oasis <- u_oasis[u_oasis$sex==input$sex,]
           }
@@ -122,7 +123,7 @@ server<-function(input, output,session) {
                         choices = c("All","M","F"),
                         selected = {
                           if (is.null(input[[ff]])||""==input[[ff]]){
-                            ""
+                            "All"
                           } else{
                             input[[ff]]
                           }
@@ -146,7 +147,16 @@ server<-function(input, output,session) {
       for (ff in get_fil()) {
         x <- append(x,list(
           if(as.character(ff)=="sex"){
-            selectInput("sex",label = "sex",choices = c("All","M","F"),selected = input$sex)
+            selectInput("sex",
+                        label = "sex",
+                        choices = c("All","M","F"),
+                        selected = {
+                          if (is.null(input[[ff]])||""==input[[ff]]){
+                            "All"
+                          } else{
+                            input[[ff]]
+                          }
+                        })
           }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
                         min = min(oasis_data[[ff]]),max=max(oasis_data[[ff]]),
@@ -160,7 +170,9 @@ server<-function(input, output,session) {
     return(x)
   })
   
-  aus_daten <- reactive({
+  
+  
+  aus_daten <- reactive({  ## get the composite way 
     if(!is.null(input$com_way)){
       switch (as.vector(input$com_way[[1]]),
               "median" = "median",
@@ -185,17 +197,24 @@ server<-function(input, output,session) {
            input[[paste0(x,"_range")]]!=0
        }))))
       return()
+    if(is.null(input$com_way)){}
     isolate({
       ##change the color boundary automatically
       ausgewaehlte_daten <- get_choice()
       wert<-ausgewaehlte_daten[-1:-3]
+      if (!is.null(input$com_way)) {
+        wert[1,] <- apply(wert, 2, aus_daten())
+        wert <- wert[1,]
+      }
       max_wert<-max(wert)
       min_wert<-min(wert)
-      
+      updateNumericInput(session, "wert_obergrenze", value = max_wert)
+      updateNumericInput(session, "wert_untergrenze", value = min_wert)
       #output table
       DT::datatable(ausgewaehlte_daten)
     })
   })
+  
   
   
   
@@ -243,22 +262,7 @@ server<-function(input, output,session) {
   })
   
   
-  
-  
-  
-  
-  #######################################################
-  ################Generate 3D brain map##################
-  #######################################################
-  output$ggseg3d<- renderPlotly({
-    input$ab  
-    if(input$ab==0)
-      return()
-    
-    # if (input$ID =="" & input$com==0) {
-    #   return()
-    # }
-    
+  get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
     names(auswahl_area)[4:77] <- paste("L_Region",1:74)
     names(auswahl_area)[78:151] <- paste("R_Region",1:74)
@@ -272,8 +276,9 @@ server<-function(input, output,session) {
       }
     }else if(input$com==0){
       showModal(modalDialog(title = "INPUT ERROR",
-                            "The inputed date should be one line or composite display selected"))
-      return()
+                            "The inputed date should be one line or composite display selected",
+                            easyClose = TRUE))
+      return(0)
     }
     else{
       auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
@@ -288,38 +293,60 @@ server<-function(input, output,session) {
     )
     auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
     
-    updateNumericInput(session, "wert_obergrenze", value = max(auswahl_area))
-    updateNumericInput(session, "wert_untergrenze", value = min(auswahl_area))
     
-    
-    
-    ###################################
-    #######new values and colors#######
-    ###################################
-    
-    auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
-    auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
-    if (1<index_selection()) {
-      for (i in 1:(index_selection()-1)) {
-        auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
-        auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
-      }
-    }
-    names(auswahl_wert) <- auswahl_color
-    
-    
-    
-    ###################################
-    ########select_hemisphere##########
-    ###################################
-    auswahl_hemisphere<-input$select_hemisphere
-    
-    
-    
-    ###################################
-    #############ggseg3d###############
-    ###################################
+    return(auswahl_data)
+  })
+  
+  
+  
+  
+  #######################################################
+  ################Generate 3D brain map##################
+  #######################################################
+  output$ggseg3d<- renderPlotly({
+    input$ab  
+    if(input$ab==0)
+      return()
     isolate({
+      print(input$ID)
+      print(input$com)
+      # if (input$com==0 & input$ID =="") {
+      #   return()
+      # }
+      auswahl_data <- get_auswahl_data()
+      if (auswahl_data==0) {
+        print(auswahl_data)
+        return()
+      }
+      
+      ###################################
+      #######new values and colors#######
+      ###################################
+      
+      auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
+      auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
+      if (1<index_selection()) {
+        for (i in 1:(index_selection()-1)) {
+          auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
+          auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
+        }
+      }
+      names(auswahl_wert) <- auswahl_color
+      
+      
+      
+      ###################################
+      ########select_hemisphere##########
+      ###################################
+      auswahl_hemisphere<-input$select_hemisphere
+      
+      
+      
+      
+      ###################################
+      #############ggseg3d###############
+      ###################################
+      
       gg <- ggseg3d(.data = auswahl_data,
                     atlas = desterieux_neu,
                     colour = "wert", text = "beschreibung",
@@ -337,7 +364,6 @@ server<-function(input, output,session) {
                              z = ~z, intensity = ~values,
                              colorscale = unname(dt_leg[,c("norm", "hex")]),
                              colorbar=list(title=list(text="mm")), type = "mesh3d")
-      
       gg
     })
   })
