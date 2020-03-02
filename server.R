@@ -66,10 +66,12 @@ server<-function(input, output,session) {
     input$fil
   })
   
-  u_oasis <- oasis_data
   
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
+    u_oasis <- oasis_data
+    print("数据重置")
+    i=1
     for (col in col_input) {
       if(input$com==0){
         v <- input[[col]]
@@ -77,19 +79,28 @@ server<-function(input, output,session) {
           u_oasis <- u_oasis[u_oasis[[col]]==v,]
         }
       }else{
-        if(!is.null(input[[paste0(col,"_range")]])){
-          v_min <- input[[paste0(col,"_range")]]
-          v_max <- input[[paste0(col,"_range")]]
-          u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-          u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]
-        }
+        #   if(!is.null(input[[paste0(col,"_range")]])){
+        #     v_min <- min(input[[paste0(col,"_range")]])
+        #     v_max <- max(input[[paste0(col,"_range")]])
+        #     print(i)
+        #     i=i+1
+        #     u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+        #     u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]
+        #   }
         
         if(as.character(col)=='sex'){
           u_oasis <- u_oasis[u_oasis$sex==input$sex,]
+        }else{
+          if(!is.null(input[[paste0(col,"_range")]])){
+            v_min <- min(input[[paste0(col,"_range")]])
+            v_max <- max(input[[paste0(col,"_range")]])
+            u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+            u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
         }
         u_oasis
       }
     }
+    print("-----------")
     return(u_oasis)
   })
   
@@ -123,18 +134,19 @@ server<-function(input, output,session) {
         ))}
     }else{
       for (ff in get_fil()) {
+        print(length(get_fil()))
         x <- append(x,list(
           if(as.character(ff)=="sex"){
-            selectInput("sex",label = "sex",choices = c("M","F"))
+            selectInput("sex",label = "sex",choices = c("All","M","F"),selected = input$sex)
           }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
-                        min = min(OASIS[[ff]]),max=max(OASIS[[ff]]),
-                        value = c(min(OASIS[[ff]]),max(OASIS[[ff]])))
+                        min = min(oasis_data[[ff]]),max=max(oasis_data[[ff]]),
+                        value = c(min(oasis_data[[ff]]),max(oasis_data[[ff]])))
           }
         ))
-       
+        print(length(x))
       }
-      x <- append(x,list( radioButtons("com_way","median or mean",choices = c("median","mean"),
+      x <- append(x,list( radioButtons("com_way","Formula Mode",choices = c("median","mean","SD"),
                                        selected = "median",inline = TRUE)))
     }
     return(x)
@@ -146,32 +158,28 @@ server<-function(input, output,session) {
   ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
-    if(is.null(get_fil())
-       ||(!(TRUE%in%lapply(get_fil(), function(x){
-         input[[x]]!="" ||
-           input[[paste0(x,"_range")]]!=0
-       }))))
-      return()
-    isolate({
-      ##change the color boundary automatically
-      ausgewaehlte_daten <- get_choice()
-      wert<-ausgewaehlte_daten[-1:-3]
-      max_wert<-max(wert)
-      min_wert<-min(wert)
-      updateNumericInput(session, "wert_obergrenze", value = max_wert)
-      updateNumericInput(session, "wert_untergrenze", value = min_wert)
-      ##output table
-      DT::datatable(ausgewaehlte_daten)
-    })
+    # if(is.null(get_fil())
+    #    ||(!(TRUE%in%lapply(get_fil(), function(x){
+    #      input[[x]]!="" ||
+    #        input[[paste0(x,"_range")]]!=0
+    #    }))))
+    #   return()
+    # isolate({
+    ##change the color boundary automatically
+    ausgewaehlte_daten <- get_choice()
+    wert<-ausgewaehlte_daten[-1:-3]
+    # print(class(wert))
+    # max_wert<-max(wert)
+    # min_wert<-min(wert)
+    # updateNumericInput(session, "wert_obergrenze", value = max_wert)
+    # updateNumericInput(session, "wert_untergrenze", value = min_wert)
+    ##output table
+    DT::datatable(ausgewaehlte_daten)
+    # })
   })
   
-  observe({
-    if ("age_range"%in%names(input)) {
-      print(input$age_range)
-    }
-  })
   
- 
+  
   
   #######################################################
   ######update the tabs when single_region selected######
@@ -216,20 +224,8 @@ server<-function(input, output,session) {
   })
   
   
-  #######################################################
-  ###############Automatic update values#################
-  #######################################################
   
-  # observeEvent(input$ID, {
-  #   ausgewaehlte_daten <- get_choice()
-  #   wert<-ausgewaehlte_daten[-1:-3]
-  #   max_wert<-max(wert)
-  #   min_wert<-min(wert)
-  #   updateNumericInput(session, "wert_obergrenze", value = max_wert)
-  #   updateNumericInput(session, "wert_untergrenze", value = min_wert)
-  # })
   
-
   
   
   #######################################################
@@ -270,7 +266,7 @@ server<-function(input, output,session) {
                               "The inputed date should be one line or composite display selected"))
         return()
       }
-        else{
+      else{
         auswahl_area <- get_choice()
         names(auswahl_area)[4:77] <- paste("L_Region",1:74)
         names(auswahl_area)[78:151] <- paste("R_Region",1:74)
@@ -294,13 +290,13 @@ server<-function(input, output,session) {
         auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
       }
       
-
+      
       
       
       ###################################
       #######new values and colors#######
       ###################################
-
+      
       auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
       auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
       print(input[[paste("wert_mitte", 1, sep = "_")]])
@@ -321,29 +317,29 @@ server<-function(input, output,session) {
       ########select_hemisphere##########
       ###################################
       auswahl_hemisphere<-input$select_hemisphere
-    
+      
       
       
       ###################################
       #############ggseg3d###############
       ###################################
       gg <- ggseg3d(.data = auswahl_data,
-              atlas = desterieux_neu,
-              colour = "wert", text = "beschreibung",
-              surface = "LCBC",
-              palette = sort(auswahl_wert),
-              hemisphere = auswahl_hemisphere,
-              na.alpha= .5,
-              show.legend = FALSE) %>%
+                    atlas = desterieux_neu,
+                    colour = "wert", text = "beschreibung",
+                    surface = "LCBC",
+                    palette = sort(auswahl_wert),
+                    hemisphere = auswahl_hemisphere,
+                    na.alpha= .5,
+                    show.legend = FALSE) %>%
         pan_camera("left lateral") %>%
         remove_axes()
       
       colours_p <- get_palette(sort(auswahl_wert))
       dt_leg <- dplyr::mutate(f, x = 0, y = 0, z = 0)
       gg = plotly::add_trace(gg, data = dt_leg, x = ~x, y = ~y,
-                            z = ~z, intensity = ~values,
-                            colorscale = unname(dt_leg[,c("norm", "hex")]),
-                            colorbar=list(title=list(text="mm")), type = "mesh3d")
+                             z = ~z, intensity = ~values,
+                             colorscale = unname(dt_leg[,c("norm", "hex")]),
+                             colorbar=list(title=list(text="mm")), type = "mesh3d")
       
       gg
     })
