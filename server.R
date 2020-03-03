@@ -102,15 +102,6 @@ server<-function(input, output,session) {
   })
   
   
-  # observeEvent(input$com,
-  #              {
-  #                if(input$com!=0){
-  #                  updateSelectInput(session,inputId = "fil",choices = names(OASIS)[-1])
-  #                }else{
-  #                  updateSelectInput(session,inputId = "fil",choices = names(OASIS))
-  #                }
-  #              })
-  
   
   output$kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
@@ -160,7 +151,12 @@ server<-function(input, output,session) {
           }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
                         min = min(oasis_data[[ff]]),max=max(oasis_data[[ff]]),
-                        value = c(min(oasis_data[[ff]]),max(oasis_data[[ff]]))
+                        value = {if(!is.null(input[[paste0(ff,"_range")]])){
+                          input[[paste0(ff,"_range")]]
+                        }else{
+                          c(min(oasis_data[[ff]]),max(oasis_data[[ff]]))
+                        }
+                        }
             )
           }
         ))
@@ -206,6 +202,7 @@ server<-function(input, output,session) {
     lapply(get_fil(), function(x){
       input[[x]]!=""
     })
+    if (input$com) {}
     lapply(get_fil(), function(x){
       input[[paste0(x,"_range")]]!=0
     })
@@ -214,17 +211,40 @@ server<-function(input, output,session) {
       ##change the color boundary automatically
       ausgewaehlte_daten <- get_choice()
       wert<-ausgewaehlte_daten[-1:-3]
-      if (!is.null(input$com_way)) {
-        wert[1,] <- apply(wert, 2, aus_daten())
-        wert <- wert[1,]
-      }
-      max_wert<-max(wert)
-      min_wert<-min(wert)
-      updateNumericInput(session, "wert_obergrenze", value = max_wert)
-      updateNumericInput(session, "wert_untergrenze", value = min_wert)
+      # if (!is.null(input$com_way)) {
+      #   wert[1,] <- apply(wert, 2, aus_daten())
+      #   wert <- wert[1,]
+      # }
+      # max_wert<-max(wert)
+      # min_wert<-min(wert)
+      # updateNumericInput(session, "wert_obergrenze", value = max_wert)
+      # updateNumericInput(session, "wert_untergrenze", value = min_wert)
       #output table
       DT::datatable(ausgewaehlte_daten)
     })
+  })
+  
+  observeEvent({
+    get_fil()
+    lapply(get_fil(), function(x){
+      input[[x]]!=""
+    })
+    if (input$com) {}
+    lapply(get_fil(), function(x){
+      input[[paste0(x,"_range")]]!=0
+    })
+    is.null(input$com_way)
+  },{
+    ausgewaehlte_daten <- get_choice()
+    wert<-ausgewaehlte_daten[-1:-3]
+    if (!is.null(input$com_way)) {
+      wert[1,] <- apply(wert, 2, aus_daten())
+      wert <- wert[1,]
+    }
+    max_wert<-max(wert)
+    min_wert<-min(wert)
+    updateNumericInput(session, "wert_obergrenze", value = max_wert)
+    updateNumericInput(session, "wert_untergrenze", value = min_wert)
   })
   
   
@@ -366,16 +386,11 @@ server<-function(input, output,session) {
                     palette = sort(auswahl_wert),
                     hemisphere = auswahl_hemisphere,
                     na.alpha= .5,
-                    show.legend = FALSE) %>%
+                    show.legend = TRUE,
+                    options.legend = (colorbar=list(title=list(text="mm")))) %>%
         pan_camera("left lateral") %>%
         remove_axes()
       
-      colours_p <- get_palette(sort(auswahl_wert))
-      dt_leg <- dplyr::mutate(colours_p, x = 0, y = 0, z = 0)
-      gg = plotly::add_trace(gg, data = dt_leg, x = ~x, y = ~y,
-                             z = ~z, intensity = ~values,
-                             colorscale = unname(dt_leg[,c("norm", "hex")]),
-                             colorbar=list(title=list(text="mm")), type = "mesh3d")
       gg
     })
   })
