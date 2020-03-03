@@ -185,7 +185,7 @@ server<-function(input, output,session) {
           }
         ))
       }
-      x <- append(x,list( radioButtons("com_way","Formula Mode",
+      x <- append(x,list( radioButtons("com_way","Descriptive Statistics",
                                        choices = c("median","mean","SD"),
                                        selected = {
                                          if(is.null(input$com_way)){"median"}
@@ -303,6 +303,13 @@ server<-function(input, output,session) {
   
   get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
+    if(nrow(auswahl_area)==0){
+      showModal(modalDialog(title = "INPUT ERROR",
+                            "The inputed date is empty",
+                            easyClose = TRUE))
+      return(NULL)
+    }
+    
     if(input$select_hemisphere=="left"){
       names(auswahl_area)[4:77] <- paste("L_Region",1:74)
     }else if(input$select_hemisphere=="right"){
@@ -341,7 +348,6 @@ server<-function(input, output,session) {
     
     return(auswahl_data)
   })
-  
   
   
   
