@@ -66,12 +66,17 @@ server<-function(input, output,session) {
     input$fil
   })
   
+  get_fil_com <- reactive({
+    input$fil_com
+  })
+  
   
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
+    col_com_input <- get_fil_com()
     u_oasis <- oasis_data
-    for (col in col_input) {
-      if(input$com==0){
+    if(input$com==0){
+      for (col in col_input) {
         v <- input[[col]]
         if(!(is.null(v)|| ""==v)){
           if(as.character(col)=='sex'){
@@ -81,26 +86,23 @@ server<-function(input, output,session) {
           else{
             u_oasis <- u_oasis[u_oasis[[col]]==v,]
           }}
-      }else{
+      }
+    }else{
+      for (col in col_com_input) {
         if(as.character(col)=='sex'){
-          print(input$sex)
-          if(input$sex!="All"){
-            u_oasis <- u_oasis[u_oasis$sex==input$sex,]
+          if((!is.null(input$sex_range))&&input$sex_range!="All"){
+            u_oasis <- u_oasis[u_oasis$sex==input$sex_range,]
           }
-        }
-        if(!is.null(input[[paste0(col,"_range")]])){
+        }else if(!is.null(input[[paste0(col,"_range")]])){
           v_min <- min(input[[paste0(col,"_range")]])
           v_max <- max(input[[paste0(col,"_range")]])
           u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
           u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
         
       }
-      u_oasis
     }
-    
     return(u_oasis)
   })
-  
   
   
   output$kon <- renderUI({     # ouput the select UI
@@ -135,17 +137,18 @@ server<-function(input, output,session) {
             )}
         ))}
     }else{
-      for (ff in get_fil()) {
+      for (ff in get_fil_com()) {
         x <- append(x,list(
-          if(as.character(ff)=="sex"){
-            selectInput("sex",
+          if(as.character(ff)=="ID"){}
+          else if(as.character(ff)=="sex"){
+            selectInput("sex_range",
                         label = "sex",
                         choices = c("All","M","F"),
                         selected = {
-                          if (is.null(input[[ff]])||""==input[[ff]]){
+                          if (is.null(input[["sex_range"]])||""==input[["sex_range"]]){
                             "All"
                           } else{
-                            input[[ff]]
+                            input[["sex_range"]]
                           }
                         })
           }else{
@@ -161,18 +164,17 @@ server<-function(input, output,session) {
           }
         ))
       }
-      x <- append(x,list( radioButtons("com_way","Formula Mode",choices = c("median","mean","SD"),
-                                       selected = "median",inline = TRUE)))
+      x <- append(x,list( radioButtons("com_way","Formula Mode",
+                                       choices = c("median","mean","SD"),
+                                       selected = {
+                                         if(is.null(input$com_way)){"median"}
+                                         else{input[["com_way"]]}
+                                       },
+                                       inline = TRUE)))
     }
-    return(x)
-  })
+      return(x)
+    })
   
-  
-  observe(if(!is.null(input$age_range)){
-    print(input$age_range)
-    
-  }
-  )
   aus_daten <- reactive({  ## get the composite way 
     if(!is.null(input$com_way)){
       switch (as.vector(input$com_way[[1]]),
@@ -192,48 +194,29 @@ server<-function(input, output,session) {
   ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
-    # if(is.null(get_fil())
-    #    ||(!(TRUE%in%lapply(get_fil(), function(x){
-    #      input[[x]]!="" ||
-    #        input[[paste0(x,"_range")]]!=0
-    #    }))))
-    #   return()
-    if(is.null(get_fil())){return()}
-    lapply(get_fil(), function(x){
-      input[[x]]!=""
-    })
+    if(is.null(get_fil())&&is.null(get_fil_com())){return()}
+    lapply(get_fil(), function(x){input[[x]]!=""})
+    lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
     if (input$com) {}
-    lapply(get_fil(), function(x){
-      input[[paste0(x,"_range")]]!=0
-    })
     if(is.null(input$com_way)){}
     isolate({
       ##change the color boundary automatically
       ausgewaehlte_daten <- get_choice()
       wert<-ausgewaehlte_daten[-1:-3]
-      # if (!is.null(input$com_way)) {
-      #   wert[1,] <- apply(wert, 2, aus_daten())
-      #   wert <- wert[1,]
-      # }
-      # max_wert<-max(wert)
-      # min_wert<-min(wert)
-      # updateNumericInput(session, "wert_obergrenze", value = max_wert)
-      # updateNumericInput(session, "wert_untergrenze", value = min_wert)
-      #output table
       DT::datatable(ausgewaehlte_daten)
     })
   })
   
+  
+  #######################################################
+  ###################color update auto###################
+  #######################################################  
   observeEvent({
-    get_fil()
-    lapply(get_fil(), function(x){
-      input[[x]]!=""
-    })
-    if (input$com) {}
-    lapply(get_fil(), function(x){
-      input[[paste0(x,"_range")]]!=0
-    })
+    input$fil
+    input$fil_com
     is.null(input$com_way)
+    lapply(get_fil(), function(x){input[[x]]})
+    lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
   },{
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
@@ -340,14 +323,11 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     isolate({
-      print(input$ID)
-      print(input$com)
       # if (input$com==0 & input$ID =="") {
       #   return()
       # }
       auswahl_data <- get_auswahl_data()
       if (auswahl_data==0) {
-        print(auswahl_data)
         return()
       }
       
@@ -435,4 +415,5 @@ server<-function(input, output,session) {
     
   })
   
-}
+  
+  }

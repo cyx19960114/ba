@@ -47,13 +47,22 @@ fluidPage(
       #   radioButtons("com_way","median or mean",choices = c("median","mean"),
       #                selected = "median",inline = TRUE)
       # ),
-  
-          
+      
+      
       ######################################################
       #################single person auswahl################
       ######################################################
-      selectInput("fil",label = "Filtern",
-                  choices = names(OASIS),multiple = TRUE),
+      
+      conditionalPanel(
+        condition = "input.com==0",
+        selectInput("fil",label = "Filtern",
+                    choices = names(OASIS),multiple = TRUE),
+      ),
+      conditionalPanel(
+        condition = "input.com==1",
+        selectInput("fil_com",label = "Filtern",
+                    choices = names(OASIS)[-1],multiple = TRUE),
+      ),
       uiOutput("kon"),
       
       
@@ -72,7 +81,7 @@ fluidPage(
         )
       ),
       
-  
+      
       
       ######################################################
       #######################Checkbox#######################
@@ -89,17 +98,17 @@ fluidPage(
       ######################################################
       conditionalPanel(
         condition = "input.hemisphere == 1",
-         selectInput(inputId = "select_hemisphere",
+        selectInput(inputId = "select_hemisphere",
                     label = "Choose Hemisphere",
-                   choices = u_hemisphere,
-                   multiple = TRUE,
-                   "left"
-                    ),
+                    choices = u_hemisphere,
+                    multiple = TRUE,
+                    "left"
+        ),
       ),
- 
       
       
-           
+      
+      
       ######################################################
       ######Choose colors and values for 3d brain maps######
       ######################################################
