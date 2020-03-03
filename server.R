@@ -18,7 +18,6 @@ source("title_fun.R")
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
 id_sex_age <- OASIS[,1:3]
-options(warn = -1)
 
 server<-function(input, output,session) {
   
@@ -55,7 +54,6 @@ server<-function(input, output,session) {
   #############transform the names of OASIS##############
   #######################################################
   oasis_data <- OASIS
-  region_names <- names(oasis_data)[-1:-3]
   
   
   
@@ -71,10 +69,19 @@ server<-function(input, output,session) {
   })
   
   
+  
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
     col_com_input <- get_fil_com()
     u_oasis <- oasis_data
+    if(input$select_hemisphere=="left"){
+      u_oasis <- u_oasis[-78:-151]
+      region_names <- names(u_oasis[-1:-3])
+    }else if(input$select_hemisphere=="right"){
+      u_oasis <- u_oasis[-4:-77]
+      region_names <- names(u_oasis[-1:-3])
+    }
+    
     if(input$com==0){
       for (col in col_input) {
         v <- input[[col]]
@@ -102,6 +109,17 @@ server<-function(input, output,session) {
       }
     }
     return(u_oasis)
+  })
+  
+  get_region_names <- reactive({
+    region_names <- names(get_choice())
+    if(input$select_hemisphere=="left"){
+      region_names <- region_names[-78:-151]
+    }else if(input$select_hemisphere=="right"){
+      region_names <- region_names[-4:-77]
+    }
+    region_names <- region_names[-1:-3]
+    return(region_names)
   })
   
   
@@ -172,8 +190,8 @@ server<-function(input, output,session) {
                                        },
                                        inline = TRUE)))
     }
-      return(x)
-    })
+    return(x)
+  })
   
   aus_daten <- reactive({  ## get the composite way 
     if(!is.null(input$com_way)){
@@ -199,6 +217,7 @@ server<-function(input, output,session) {
     lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
     if (input$com) {}
     if(is.null(input$com_way)){}
+    input$select_hemisphere
     isolate({
       ##change the color boundary automatically
       ausgewaehlte_daten <- get_choice()
@@ -217,6 +236,7 @@ server<-function(input, output,session) {
     is.null(input$com_way)
     lapply(get_fil(), function(x){input[[x]]})
     lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
+    input$select_hemisphere
   },{
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
@@ -279,8 +299,14 @@ server<-function(input, output,session) {
   
   get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
-    names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-    names(auswahl_area)[78:151] <- paste("R_Region",1:74)
+    if(input$select_hemisphere=="left"){
+      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+    }else if(input$select_hemisphere=="right"){
+      names(auswahl_area)[4:77] <- paste("R_Region",1:74)
+    }else{
+      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
+      names(auswahl_area)[78:151] <- paste("R_Region",1:74)
+    }
     auswahl_area <- auswahl_area[-1:-3]
     if (nrow(get_choice())==1) {
       if(input$single_region==1){ ## when only one region to display
@@ -293,7 +319,7 @@ server<-function(input, output,session) {
       showModal(modalDialog(title = "INPUT ERROR",
                             "The inputed date should be one line or composite display selected",
                             easyClose = TRUE))
-      return(0)
+      return(NULL)
     }
     else{
       auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
@@ -304,9 +330,9 @@ server<-function(input, output,session) {
     auswahl_data <- data.frame(
       area = as.character(row.names(auswahl_area)),
       wert = auswahl_area[,1],
-      strings_As_Factors = FALSE
+      stringsAsFactors = FALSE
     )
-    auswahl_data$beschreibung <- paste("Region Names: ",region_names,", Wert ist ",auswahl_data$wert)
+    auswahl_data$beschreibung <- paste("Region Names: ",get_region_names(),", Wert ist ",auswahl_data$wert)
     
     
     return(auswahl_data)
@@ -327,7 +353,8 @@ server<-function(input, output,session) {
       #   return()
       # }
       auswahl_data <- get_auswahl_data()
-      if (auswahl_data==0) {
+      
+      if (is.null(auswahl_data)) {
         return()
       }
       
@@ -351,8 +378,7 @@ server<-function(input, output,session) {
       ########select_hemisphere##########
       ###################################
       auswahl_hemisphere<-input$select_hemisphere
-      
-      
+      if(auswahl_hemisphere=="All"){auswahl_hemisphere=c("left","right")}
       
       
       ###################################
@@ -416,4 +442,4 @@ server<-function(input, output,session) {
   })
   
   
-  }
+}

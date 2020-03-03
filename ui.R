@@ -100,9 +100,8 @@ fluidPage(
         condition = "input.hemisphere == 1",
         selectInput(inputId = "select_hemisphere",
                     label = "Choose Hemisphere",
-                    choices = u_hemisphere,
-                    multiple = TRUE,
-                    "left"
+                    choices = c("All",u_hemisphere),
+                    "All"
         ),
       ),
       
