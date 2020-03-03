@@ -56,10 +56,6 @@ server<-function(input, output,session) {
   oasis_data <- OASIS
   
   
-  
-  #######################################################
-  ##########output the ui from the selected col##########
-  #######################################################
   get_fil <- reactive({
     input$fil
   })
@@ -69,7 +65,9 @@ server<-function(input, output,session) {
   })
   
   
-  
+  #######################################################
+  #filter the data from according to selected condition##
+  #######################################################
   get_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_fil()
     col_com_input <- get_fil_com()
@@ -111,6 +109,8 @@ server<-function(input, output,session) {
     return(u_oasis)
   })
   
+  
+  ## get the region names after filter
   get_region_names <- reactive({
     region_names <- names(get_choice())
     if(input$select_hemisphere=="left"){
@@ -123,6 +123,9 @@ server<-function(input, output,session) {
   })
   
   
+  #######################################################
+  ##########output the ui from the selected col##########
+  #######################################################
   output$kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
     if(input$com==0){
@@ -193,7 +196,8 @@ server<-function(input, output,session) {
     return(x)
   })
   
-  aus_daten <- reactive({  ## get the composite way 
+  ## get the composite way 
+  aus_daten <- reactive({  
     if(!is.null(input$com_way)){
       switch (as.vector(input$com_way[[1]]),
               "median" = "median",
