@@ -396,7 +396,7 @@ server<-function(input, output,session) {
       #############ggseg3d###############
       ###################################
       
-      gg <- ggseg3d(.data = auswahl_data,
+      gg <<- ggseg3d(.data = auswahl_data,
                     atlas = desterieux_neu,
                     colour = "wert", text = "beschreibung",
                     surface = "LCBC",
@@ -417,7 +417,7 @@ server<-function(input, output,session) {
   ###########################################
   #p<-output$ggseg3d
   observeEvent(input$download,{
-    orca(output$ggseg3d, paste(input$name,input$format, sep = ".", collapse = NULL))})
+    orca(gg, paste(input$name,input$format, sep = ".", collapse = NULL))})
   
   
   ###########################################
