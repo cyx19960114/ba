@@ -12,6 +12,7 @@ library(ggplot2)
 library(readxl)
 library(colourpicker)
 library(scales)
+library(processx)
 source("title_fun.R")
 
 
@@ -411,7 +412,12 @@ server<-function(input, output,session) {
     })
   })
   
-  
+  ###########################################
+  #####################orca##################
+  ###########################################
+  #p<-output$ggseg3d
+  observeEvent(input$download,{
+    orca(output$ggseg3d, paste(input$name,input$format, sep = ".", collapse = NULL))})
   
   
   ###########################################

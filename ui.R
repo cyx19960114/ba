@@ -17,6 +17,7 @@ u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 u_hemisphere<-c("left","right")
+u_format<-c("svg","pdf")
 
 fluidPage(
   titlePanel("ggseg3d"),
@@ -63,7 +64,7 @@ fluidPage(
       checkboxInput(inputId="com",label="composite display",value=FALSE),
       checkboxInput("farbe_wert","color and value",FALSE),
       checkboxInput("hemisphere","hemisphere",FALSE),
-      
+      checkboxInput("checkbox_downlaod","Download options",FALSE),
       
       
       
@@ -111,6 +112,22 @@ fluidPage(
       ),
       
       
+      conditionalPanel(
+        condition = "input.checkbox_downlaod==1",
+        textInput(inputId = "name",
+                  "file name"
+        ),
+        
+        selectInput(inputId = "format",
+                    "file format",
+                    choices = u_format,
+                    "pdf"
+        ),
+        
+        actionButton("download","Download image"),
+        hr()
+      ),
+      
       
       
       ######################################################
@@ -118,6 +135,7 @@ fluidPage(
       ######################################################
       actionButton("ab","Generate brain map"),
       tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
+      
       
       
     ),
