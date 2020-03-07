@@ -247,7 +247,10 @@ server<-function(input, output,session) {
     wert<-ausgewaehlte_daten[-1:-3]
     if (!is.null(input$com_way)) {
       wert[1,] <- apply(wert, 2, aus_daten())
-      wert <- wert[1,]
+      if(aus_daten()=="sd")
+        wert <- round(wert[1,],7)
+      else
+        wert <- wert[1,]
     }
     max_wert<-max(wert)
     min_wert<-min(wert)
@@ -336,6 +339,10 @@ server<-function(input, output,session) {
     else{
       auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
       auswahl_area <- auswahl_area[1,]
+      if(aus_daten()=="sd")
+        auswahl_area <- round(auswahl_area[1,],7)
+      else
+        auswahl_area <- auswahl_area[1,]
     }
     
     auswahl_area <- t(auswahl_area)
