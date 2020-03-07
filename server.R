@@ -397,27 +397,49 @@ server<-function(input, output,session) {
       ###################################
       
       gg <<- ggseg3d(.data = auswahl_data,
-                    atlas = desterieux_neu,
-                    colour = "wert", text = "beschreibung",
-                    surface = "LCBC",
-                    palette = sort(auswahl_wert),
-                    hemisphere = auswahl_hemisphere,
-                    na.alpha= .5,
-                    show.legend = TRUE,
-                    options.legend = (colorbar=list(title=list(text="mm")))) %>%
-        pan_camera("left lateral") %>%
-        remove_axes()
+                     atlas = desterieux_neu,
+                     colour = "wert", text = "beschreibung",
+                     surface = "LCBC",
+                     palette = sort(auswahl_wert),
+                     hemisphere = auswahl_hemisphere,
+                     na.alpha= .5,
+                     show.legend = TRUE,
+                     options.legend = (colorbar=list(title=list(text="mm")))) %>%
+        pan_camera("left lateral") %>% event_register("plotly_relayout") %>% remove_axes()
       
       gg
     })
   })
   
+  observeEvent(input$ab,{
+    updateTabsetPanel(session,"tab",selected = "3D")
+  })
+  
   ###########################################
   #####################orca##################
   ###########################################
+  get_eye <- reactive({
+    d <- event_data("plotly_relayout")
+    if(input$ab==0||is.null(d)){
+      return(NULL)
+    }else {
+      return(d$scene.camera[["eye"]])
+    }
+  })
+  
+  
   #p<-output$ggseg3d
   observeEvent(input$download,{
-    orca(gg, paste(input$name,input$format, sep = ".", collapse = NULL))})
+    if(is.null(get_eye())){
+      orca(gg, paste(input$name,input$format, sep = ".", collapse = NULL))
+    }else{
+      eye <- get_eye()
+      scene=list(camera=list(eye=list(x=eye$x,y=eye$y,z=eye$z)))
+      gg_eye <- gg%>%layout(scene=scene)
+      orca(gg_eye,paste(input$name,input$format, sep = ".", collapse = NULL))
+    }
+  })
+  
   
   
   ###########################################

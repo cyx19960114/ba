@@ -18,7 +18,7 @@ u_IDs <- id_sex_age$ID
 u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 u_hemisphere<-c("left","right")
-u_format<-c("svg","pdf")
+u_format<-c("svg","pdf","eps")
 
 fluidPage(
   titlePanel("ggseg3d"),
