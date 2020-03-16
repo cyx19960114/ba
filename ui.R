@@ -31,7 +31,7 @@ fluidPage(
       
       conditionalPanel(
         condition = "input.com==0",
-        selectInput("fil",label = "Filtern",
+        selectInput("fil",label = "Filter",
                     choices = names(OASIS),multiple = TRUE),
       ),
       conditionalPanel(

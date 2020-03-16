@@ -2,11 +2,8 @@
 # remotes::install_github("LCBC-UiO/ggseg", build_vignettes = TRUE)
 # remotes::install_github("LCBC-UiO/ggseg3d", build_vignettes = TRUE)
 library(shiny)
-library(ggseg)
 library(dplyr)
 library(tidyr)
-library(ggseg3d)
-library(ggsegExtra)
 library(plotly)
 library(ggplot2)
 library(readxl)
@@ -14,11 +11,17 @@ library(colourpicker)
 library(scales)
 library(processx)
 source("title_fun.R")
+file.source=list.files("ggseg3d\\R",pattern="*.R")
+file.source <- paste("ggseg3d\\R\\",file.source,sep="")
+lapply(file.source, source,.GlobalEnv)
 
 
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
+
 id_sex_age <- OASIS[,1:3]
+
+
 
 server<-function(input, output,session) {
   
@@ -247,11 +250,8 @@ server<-function(input, output,session) {
     wert<-ausgewaehlte_daten[-1:-3]
     if (!is.null(input$com_way)) {
       wert[1,] <- apply(wert, 2, aus_daten())
-      if(aus_daten()=="sd")
-        wert <- round(wert[1,],7)
-      else
-        wert <- wert[1,]
     }
+    wert <- wert%>%mutate_if(is.numeric,round,2)
     max_wert<-max(wert)
     min_wert<-min(wert)
     updateNumericInput(session, "wert_obergrenze", value = max_wert)
@@ -339,11 +339,8 @@ server<-function(input, output,session) {
     else{
       auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
       auswahl_area <- auswahl_area[1,]
-      if(aus_daten()=="sd")
-        auswahl_area <- round(auswahl_area[1,],7)
-      else
-        auswahl_area <- auswahl_area[1,]
     }
+    auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
     
     auswahl_area <- t(auswahl_area)
     auswahl_data <- data.frame(
@@ -351,7 +348,7 @@ server<-function(input, output,session) {
       wert = auswahl_area[,1],
       stringsAsFactors = FALSE
     )
-    auswahl_data$beschreibung <- paste("Region Names: ",get_region_names(),", Wert ist ",auswahl_data$wert)
+    auswahl_data[[" "]] <- paste(get_region_names(),", Wert ist ",auswahl_data$wert)
     
     
     return(auswahl_data)
@@ -405,7 +402,7 @@ server<-function(input, output,session) {
       
       gg <<- ggseg3d(.data = auswahl_data,
                      atlas = desterieux_neu,
-                     colour = "wert", text = "beschreibung",
+                     colour = "wert", text = " ",
                      surface = "LCBC",
                      palette = sort(auswahl_wert),
                      hemisphere = auswahl_hemisphere,
@@ -486,5 +483,8 @@ server<-function(input, output,session) {
     
   })
   
+  
+  
+
   
 }
