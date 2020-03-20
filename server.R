@@ -4,6 +4,8 @@
 library(shiny)
 library(dplyr)
 library(tidyr)
+library(ggseg3d)
+library(ggsegExtra)
 library(plotly)
 library(ggplot2)
 library(readxl)
@@ -11,8 +13,7 @@ library(colourpicker)
 library(scales)
 library(processx)
 source("title_fun.R")
-file.source=list.files("ggseg3d\\R",pattern="*.R")
-file.source <- paste("ggseg3d\\R\\",file.source,sep="")
+file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
 
 
@@ -409,9 +410,31 @@ server<-function(input, output,session) {
                      na.alpha= .5,
                      show.legend = TRUE,
                      options.legend = (colorbar=list(title=list(text="mm")))) %>%
-        pan_camera("left lateral") %>% event_register("plotly_relayout") %>% remove_axes()
+        pan_camera("left lateral") %>% 
+        event_register("plotly_relayout") %>% 
+        remove_axes()
       
-      gg
+      filter_data <- NULL
+      if(input$com==0){
+        for (i in input$fil) {
+          filter_data <- paste(filter_data,i,":",input[[i]],"\n",sep=" ")
+        }
+      }else{
+        for (i in input$fil_com) {
+          i_range=paste(i,"_range",sep="")
+          if(i_range=="sex_range"){
+            filter_data <- paste(filter_data,"sex: ",input[[i_range]],"\n",sep = "")
+          }else{
+            
+            filter_data <- paste(filter_data,i,": ","[",min(input[[i_range]]),",",max(input[[i_range]]),"]","\n",sep="")
+          }
+        }
+      }
+      print("-------------------")
+      print(filter_data)
+      
+      
+      gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
     })
   })
   
@@ -485,6 +508,6 @@ server<-function(input, output,session) {
   
   
   
-
+  
   
 }
