@@ -24,6 +24,11 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
       
+      
+      
+      
+      
+      
       ######################################################
       #################single person auswahl################
       ######################################################
@@ -65,7 +70,20 @@ fluidPage(
       checkboxInput("farbe_wert","color and value",FALSE),
       checkboxInput("hemisphere","hemisphere",FALSE),
       checkboxInput("checkbox_downlaod","Download options",FALSE),
+      checkboxInput("thickness_names_change","Thickness Names Correction",FALSE),
       
+      
+      
+      
+      ######################################################
+      ##############input colname change file###############
+      ######################################################
+      conditionalPanel(
+        condition="input.thickness_names_change == 1",
+        fileInput("name_file","Thinkness Names correction",accept = c('.xlsx','xls')
+        ),
+        
+      ),
       
       
       ######################################################

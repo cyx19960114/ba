@@ -17,14 +17,16 @@ file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
 
 
+
 OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
 OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
-
 id_sex_age <- OASIS[,1:3]
-
-
+oasis_data <<- OASIS
 
 server<-function(input, output,session) {
+  
+
+  
   
   
   ######################################data preprocess######################################### 
@@ -58,7 +60,50 @@ server<-function(input, output,session) {
   #######################################################
   #############transform the names of OASIS##############
   #######################################################
-  oasis_data <- OASIS
+
+  
+  
+  observeEvent(input$name_file,{
+    if(!is.null(input$name_file)){
+      print("dasda")
+      area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
+      oasis_r <- OASIS[-1:-3]
+      n <- names(oasis_r)
+      an <- area[[2]]
+      nt <- sub("lh","",n)
+      nt <- sub("rh","",nt)
+      nt <- sub("thickness","",nt)
+      nt <- gsub("_","",nt)
+      nt <- gsub("-","",nt)
+      o_table <- tibble(names(oasis_r),nt,seq(1:length(names(oasis_r))))
+      names(o_table) <- c("o_names","pattern","name_seq")
+      
+      an <- gsub("_","",an)
+      an <- gsub("-","",an)
+      an <- sub("and","",an)
+      area[[2]] <- an
+      names(area) <- c("num","pattern","replacement")
+      pattern <- merge(o_table,area)
+      
+      pattern <- pattern[c("o_names","name_seq","replacement")]%>%arrange(name_seq)
+      
+      get_name <- function(x){
+        if(grepl("lh",x["o_names"])){
+          x["o_names"] <- paste("L",x["replacement"],sep = " ")
+        }else if(grepl("rh",x["o_names"])){
+          x["o_names"] <- paste("R",x["replacement"],sep = " ")
+        }
+      }
+      
+      pattern <- apply(pattern,1,get_name)
+      
+      names(OASIS)[-1:-3] <- pattern
+      
+      oasis_data <<- OASIS
+    }
+  }
+  )
+  
   
   
   get_fil <- reactive({
@@ -226,12 +271,13 @@ server<-function(input, output,session) {
     lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
     if (input$com) {}
     if(is.null(input$com_way)){}
+    if(is.null(input$name_file)){print("dsada")}
     input$select_hemisphere
     isolate({
       ##change the color boundary automatically
       ausgewaehlte_daten <- get_choice()
       wert<-ausgewaehlte_daten[-1:-3]
-      DT::datatable(ausgewaehlte_daten)
+      DT::datatable(ausgewaehlte_daten,class = "display nowrap")
     })
   })
   
