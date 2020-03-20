@@ -18,13 +18,12 @@ lapply(file.source, source,.GlobalEnv)
 
 
 
-OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
-OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
-id_sex_age <- OASIS[,1:3]
-oasis_data <<- OASIS
 
 server<-function(input, output,session) {
-  
+  OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
+  OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
+  id_sex_age <- OASIS[,1:3]
+  oasis_data <<- OASIS
 
   
   
@@ -65,7 +64,6 @@ server<-function(input, output,session) {
   
   observeEvent(input$name_file,{
     if(!is.null(input$name_file)){
-      print("dasda")
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
       oasis_r <- OASIS[-1:-3]
       n <- names(oasis_r)
@@ -119,6 +117,7 @@ server<-function(input, output,session) {
   #filter the data from according to selected condition##
   #######################################################
   get_choice <- reactive({    # get the select col and return the selected date
+    aa <- input$name_file
     col_input <- get_fil()
     col_com_input <- get_fil_com()
     u_oasis <- oasis_data
@@ -129,7 +128,6 @@ server<-function(input, output,session) {
       u_oasis <- u_oasis[-4:-77]
       region_names <- names(u_oasis[-1:-3])
     }
-    
     if(input$com==0){
       for (col in col_input) {
         v <- input[[col]]
@@ -184,9 +182,9 @@ server<-function(input, output,session) {
           if(as.character(ff)=="sex"){
             selectInput("sex",
                         label = "sex",
-                        choices = c("All","M","F"),
+                        choices = unique(append("All",get_choice()[["sex"]])),
                         selected = {
-                          if (is.null(input[[ff]])||""==input[[ff]]){
+                          if (is.null(input[[ff]])||"All"==input[[ff]]){
                             "All"
                           } else{
                             input[[ff]]
@@ -214,9 +212,9 @@ server<-function(input, output,session) {
           else if(as.character(ff)=="sex"){
             selectInput("sex_range",
                         label = "sex",
-                        choices = c("All","M","F"),
+                        choices = unique(append("All",get_choice()[["sex"]])),
                         selected = {
-                          if (is.null(input[["sex_range"]])||""==input[["sex_range"]]){
+                          if (is.null(input[["sex_range"]])||"All"==input[["sex_range"]]){
                             "All"
                           } else{
                             input[["sex_range"]]
@@ -266,20 +264,20 @@ server<-function(input, output,session) {
   ##################output OASIS table###################
   #######################################################
   output$table<- DT::renderDataTable({
-    if(is.null(get_fil())&&is.null(get_fil_com())){return()}
+    if(!is.null(input$name_file)){}
     lapply(get_fil(), function(x){input[[x]]!=""})
     lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
     if (input$com) {}
     if(is.null(input$com_way)){}
-    if(is.null(input$name_file)){print("dsada")}
     input$select_hemisphere
+    if(is.null(get_fil())&&is.null(get_fil_com())){return()}
     isolate({
-      ##change the color boundary automatically
+
       ausgewaehlte_daten <- get_choice()
-      wert<-ausgewaehlte_daten[-1:-3]
       DT::datatable(ausgewaehlte_daten,class = "display nowrap")
     })
   })
+  
   
   
   #######################################################
@@ -293,6 +291,7 @@ server<-function(input, output,session) {
     lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
     input$select_hemisphere
   },{
+    ##change the color boundary automatically
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
     if (!is.null(input$com_way)) {
@@ -351,6 +350,8 @@ server<-function(input, output,session) {
     
   })
   
+  
+  # observeEvent(input$Re)
   
   get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
@@ -476,8 +477,6 @@ server<-function(input, output,session) {
           }
         }
       }
-      print("-------------------")
-      print(filter_data)
       
       
       gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
