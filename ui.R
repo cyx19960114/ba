@@ -136,12 +136,13 @@ fluidPage(
                   "file name"
         ),
         
+        
         selectInput(inputId = "format",
                     "file format",
                     choices = u_format,
                     "pdf"
         ),
-        
+        checkboxInput("down_filter","With Filer Label",value = FALSE),
         actionButton("download","Download image"),
         hr()
       ),

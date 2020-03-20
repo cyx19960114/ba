@@ -24,7 +24,7 @@ server<-function(input, output,session) {
   OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
   id_sex_age <- OASIS[,1:3]
   oasis_data <<- OASIS
-
+  
   
   
   
@@ -59,7 +59,7 @@ server<-function(input, output,session) {
   #######################################################
   #############transform the names of OASIS##############
   #######################################################
-
+  
   
   
   observeEvent(input$name_file,{
@@ -272,7 +272,7 @@ server<-function(input, output,session) {
     input$select_hemisphere
     if(is.null(get_fil())&&is.null(get_fil_com())){return()}
     isolate({
-
+      
       ausgewaehlte_daten <- get_choice()
       DT::datatable(ausgewaehlte_daten,class = "display nowrap")
     })
@@ -461,19 +461,19 @@ server<-function(input, output,session) {
         event_register("plotly_relayout") %>% 
         remove_axes()
       
-      filter_data <- NULL
+      filter_data <<- NULL
       if(input$com==0){
         for (i in input$fil) {
-          filter_data <- paste(filter_data,i,":",input[[i]],"\n",sep=" ")
+          filter_data <<- paste(filter_data,i,":",input[[i]],"\n",sep=" ")
         }
       }else{
         for (i in input$fil_com) {
           i_range=paste(i,"_range",sep="")
           if(i_range=="sex_range"){
-            filter_data <- paste(filter_data,"sex: ",input[[i_range]],"\n",sep = "")
+            filter_data <<- paste(filter_data,"sex: ",input[[i_range]],"\n",sep = "")
           }else{
             
-            filter_data <- paste(filter_data,i,": ","[",min(input[[i_range]]),",",max(input[[i_range]]),"]","\n",sep="")
+            filter_data <<- paste(filter_data,i,": ","[",min(input[[i_range]]),",",max(input[[i_range]]),"]","\n",sep="")
           }
         }
       }
@@ -503,15 +503,26 @@ server<-function(input, output,session) {
   #p<-output$ggseg3d
   observeEvent(input$download,{
     if(is.null(get_eye())){
-      orca(gg, paste(input$name,input$format, sep = ".", collapse = NULL))
+      if(isFALSE(input$down_filter)){
+        orca(gg, paste(input$name,input$format, sep = ".", collapse = NULL))
+      }else{
+        orca(gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13))),
+             paste(input$name,input$format, sep = ".", collapse = NULL))
+      }
     }else{
       eye <- get_eye()
       scene=list(camera=list(eye=list(x=eye$x,y=eye$y,z=eye$z)))
-      gg_eye <- gg%>%layout(scene=scene)
-      orca(gg_eye,paste(input$name,input$format, sep = ".", collapse = NULL))
+      # gg_eye <- gg%>%layout(scene=scene)
+      if(isFALSE(input$down_filter)){
+        orca(gg%>%layout(scene=scene),paste(input$name,input$format, sep = ".", collapse = NULL))
+      }else{
+        gg_eye <- gg%>%layout(scene=scene,annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
+        orca(gg_eye,paste(input$name,input$format, sep = ".", collapse = NULL))
+      }
     }
   })
   
+  observe(print(input$down_filter))
   
   
   ###########################################
