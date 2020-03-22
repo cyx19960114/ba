@@ -528,6 +528,26 @@ server<-function(input, output,session) {
   })
   
   
+  observe({
+    if(input$com==0){
+      # print(names(get_choice()))
+      region_name <- names(get_choice())[-1:-3]
+      updateSelectInput(session,"region",
+                        choices = region_name,
+                        selected = {
+                          if(is.null(input$region)){
+                            region_name[[1]]
+                          }else{
+                            input$region
+                          }
+                        })
+      
+      print(region_name)
+    }
+    print(input$com)
+    
+  })
+  
   
   ###########################################
   #####distributionPlot when single person###

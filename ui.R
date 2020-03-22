@@ -106,18 +106,11 @@ fluidPage(
       ######################################################
       conditionalPanel(
         condition = "input.farbe_wert == 1",
-        # selectInput(inputId = "color_obergrenze",
-        #            label = "waehlen color_obergrenze",
-        #           choices = u_color_obergrenze,
-        #          "red"),
         colourInput("color_obergrenze", "Please select the color of the upper bound", "red"),
         numericInput(inputId = 'wert_obergrenze',
                      label = 'Please choose a value for the upper bound',
                      4.2),
-        # selectInput(inputId = "color_untergrenze",
-        #       label = "waehlen color_untergrenz",
-        #     choices = u_color_untergrenze,
-        #    "blue"),
+        
         colourInput("color_untergrenze", "Please select the color of the lower bound", "blue"),
         numericInput(inputId = 'wert_untergrenze',
                      label = 'Please choose a value for the lower bound',
