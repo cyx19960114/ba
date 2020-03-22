@@ -530,7 +530,6 @@ server<-function(input, output,session) {
   
   observe({
     if(input$com==0){
-      # print(names(get_choice()))
       region_name <- names(get_choice())[-1:-3]
       updateSelectInput(session,"region",
                         choices = region_name,
@@ -542,10 +541,7 @@ server<-function(input, output,session) {
                           }
                         })
       
-      print(region_name)
     }
-    print(input$com)
-    
   })
   
   
