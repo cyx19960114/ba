@@ -377,7 +377,6 @@ server<-function(input, output,session) {
     
     
     auswahl_area <- auswahl_area[-1:-3]
-    # print(names(auswahl_area))
     if (nrow(get_choice())==1) {
       if(input$single_region==1){ ## when only one region to display
         auswahl_region <- input$region
@@ -409,11 +408,6 @@ server<-function(input, output,session) {
     return(auswahl_data)
   })
   
-  observe(if (is.null(get_auswahl_data())) {
-    
-  }else{print(get_auswahl_data()["area"])
-    print(get_altes()[[4]][[1]][[1]])
-    })  
   
   #######################################################
   ################Generate 3D brain map##################
