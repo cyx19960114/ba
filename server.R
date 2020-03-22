@@ -30,35 +30,14 @@ server<-function(input, output,session) {
   
   ######################################data preprocess######################################### 
   
-  
-  
-  #######################################################
-  ######make the names pass to left and right brain######
-  #######################################################
-  desterieux_neu<-desterieux_3d # load desterieux_3d
-  for (j in 1:6) {
-    if (desterieux_neu[[3]][[j]] == "left") {
-      for (i in 1:82) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("L_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
-      }
-      for (i in 84:149) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("L_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
-      }
-    }else{
-      for (i in 1:82) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("R_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]]))
-      }
-      for (i in 84:149) {
-        desterieux_neu[[4]][[j]][[1]][[i]]<-paste("R_Region",as.numeric(desterieux_neu[[4]][[j]][[5]][[i]])-1)
-      }
-    }
-  }
+
   
   
   
   #######################################################
   #############transform the names of OASIS##############
   #######################################################
+  
   
   
   
@@ -111,6 +90,40 @@ server<-function(input, output,session) {
   get_fil_com <- reactive({
     input$fil_com
   })
+  
+  
+  
+  
+  #######################################################
+  ######make the names pass to left and right brain######
+  #######################################################
+  # if(is.null(desterieux_neu)){ }
+  # load desterieux_3d
+  get_altes <- reactive({
+    desterieux_neu<-desterieux_3d
+    t_name <- names(oasis_data[-1:-3])
+    for (j in 1:6) {
+      if (desterieux_neu[[3]][[j]] == "left") {
+        for (i in 1:82) {
+          desterieux_neu[[4]][[j]][[1]][[i]]<-t_name[trunc((i+1)/2)]
+        }
+        for (i in 84:149) {
+          desterieux_neu[[4]][[j]][[1]][[i]]<-t_name[trunc(i/2)]
+        }
+      }else{
+        for (i in 1:82) {
+          desterieux_neu[[4]][[j]][[1]][[i]]<-t_name[trunc((i+149)/2)]
+        }
+        for (i in 84:149) {
+          desterieux_neu[[4]][[j]][[1]][[i]]<-t_name[trunc((i+148)/2)]
+        }
+      }
+    }
+    
+    return(desterieux_neu)
+  })
+  
+  
   
   
   #######################################################
@@ -362,15 +375,9 @@ server<-function(input, output,session) {
       return(NULL)
     }
     
-    if(input$select_hemisphere=="left"){
-      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-    }else if(input$select_hemisphere=="right"){
-      names(auswahl_area)[4:77] <- paste("R_Region",1:74)
-    }else{
-      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-      names(auswahl_area)[78:151] <- paste("R_Region",1:74)
-    }
+    
     auswahl_area <- auswahl_area[-1:-3]
+    # print(names(auswahl_area))
     if (nrow(get_choice())==1) {
       if(input$single_region==1){ ## when only one region to display
         auswahl_region <- input$region
@@ -379,9 +386,9 @@ server<-function(input, output,session) {
         auswahl_area[[auswahl_region]]<-save
       }
     }else if(input$com==0){
-      showModal(modalDialog(title = "INPUT ERROR",
-                            "The inputed date should be one line or composite display selected",
-                            easyClose = TRUE))
+      # showModal(modalDialog(title = "INPUT ERROR",
+      #                       "The inputed date should be one line or composite display selected",
+      #                       easyClose = TRUE))
       return(NULL)
     }
     else{
@@ -402,7 +409,11 @@ server<-function(input, output,session) {
     return(auswahl_data)
   })
   
-  
+  observe(if (is.null(get_auswahl_data())) {
+    
+  }else{print(get_auswahl_data()["area"])
+    print(get_altes()[[4]][[1]][[1]])
+    })  
   
   #######################################################
   ################Generate 3D brain map##################
@@ -449,7 +460,7 @@ server<-function(input, output,session) {
       ###################################
       
       gg <<- ggseg3d(.data = auswahl_data,
-                     atlas = desterieux_neu,
+                     atlas = get_altes(),
                      colour = "wert", text = " ",
                      surface = "LCBC",
                      palette = sort(auswahl_wert),
@@ -522,7 +533,6 @@ server<-function(input, output,session) {
     }
   })
   
-  observe(print(input$down_filter))
   
   
   ###########################################
