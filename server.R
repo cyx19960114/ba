@@ -551,25 +551,21 @@ server<-function(input, output,session) {
   output$distributionPlot<-renderPlot({
     if(input$single_region==0)
       return()
-    if(input$ab==0)
-      return()
+    # if(input$ab==0)
+    #   return()
+    if(is.null(input[["ID"]])){}
     isolate({
       region<-input$region
       auswahl_area <- get_choice()
       if(nrow(get_choice())!=1){
         return()
       }
-      names(auswahl_area)[4:77] <- paste("L_Region",1:74)
-      names(auswahl_area)[78:151] <- paste("R_Region",1:74)
-      auswahl_area <- auswahl_area[-1:-3]
-      
-      names(oasis_data)[4:77] <- paste("L_Region",1:74)
-      names(oasis_data)[78:151] <- paste("R_Region",1:74)
-      oasis_data <- oasis_data[-1:-3]
       
       auswahl_region <- input$region
+      oasis_data <- oasis_data[-1:-3]
       selectedData <- oasis_data[auswahl_region]
       colnames(selectedData) <- c("distributionPlot")
+      
       selectedData$distributionPlot<-as.numeric(selectedData$distributionPlot)
       
       save<-auswahl_area[[auswahl_region]]
