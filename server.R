@@ -30,7 +30,7 @@ server<-function(input, output,session) {
   
   ######################################data preprocess######################################### 
   
-
+  
   
   
   
@@ -482,9 +482,13 @@ server<-function(input, output,session) {
           }
         }
       }
+      if(is.null(filter_data)){
+        gg
+      }else{
+        gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
+        
+      }
       
-      
-      gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
     })
   })
   
