@@ -146,7 +146,9 @@ fluidPage(
       ########Reset button and generate image button########
       ######################################################
       actionButton("ab","Generate brain map"),
-      tags$button("Restart", id="restart", type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
+      tags$button("Restart", 
+                  id="restart", 
+                  type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
       
       
       
@@ -156,7 +158,9 @@ fluidPage(
       tabsetPanel(type = "tabs",id = "tab",
                   tabPanel("Table",DT::dataTableOutput("table")),
                   tabPanel("3D",plotlyOutput("ggseg3d",height = "700px")),
+                  tabPanel("Quality Control",plotOutput("quality",height = "12000px")),
                   tabPanel("DistributionPlot",plotOutput("distributionPlot")))
+      
     )
     
     

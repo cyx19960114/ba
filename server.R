@@ -12,7 +12,9 @@ library(readxl)
 library(colourpicker)
 library(scales)
 library(processx)
-source("title_fun.R")
+library(reshape2)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+# source("title_fun.R")
 file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
 
@@ -23,7 +25,6 @@ server<-function(input, output,session) {
   OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
   OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
   id_sex_age <- OASIS[,1:3]
-  oasis_data <<- OASIS
   
   
   
@@ -39,14 +40,12 @@ server<-function(input, output,session) {
   #######################################################
   
   
-  
-  
-  observeEvent(input$name_file,{
+  get_oasis <- reactive({
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
       oasis_r <- OASIS[-1:-3]
       n <- names(oasis_r)
-      an <- area[[2]]
+      
       nt <- sub("lh","",n)
       nt <- sub("rh","",nt)
       nt <- sub("thickness","",nt)
@@ -55,6 +54,7 @@ server<-function(input, output,session) {
       o_table <- tibble(names(oasis_r),nt,seq(1:length(names(oasis_r))))
       names(o_table) <- c("o_names","pattern","name_seq")
       
+      an <- area[[2]]
       an <- gsub("_","",an)
       an <- gsub("-","",an)
       an <- sub("and","",an)
@@ -76,10 +76,18 @@ server<-function(input, output,session) {
       
       names(OASIS)[-1:-3] <- pattern
       
-      oasis_data <<- OASIS
+      oasis_data <- OASIS
+      
+      return(oasis_data)
+    }else{
+      oasis_data <- OASIS
+      return(oasis_data)
     }
-  }
-  )
+    
+  })
+  
+  
+  
   
   
   
@@ -101,7 +109,7 @@ server<-function(input, output,session) {
   # load desterieux_3d
   get_altes <- reactive({
     desterieux_neu<-desterieux_3d
-    t_name <- names(oasis_data[-1:-3])
+    t_name <- names(get_oasis()[-1:-3])
     for (j in 1:6) {
       if (desterieux_neu[[3]][[j]] == "left") {
         for (i in 1:82) {
@@ -133,7 +141,7 @@ server<-function(input, output,session) {
     aa <- input$name_file
     col_input <- get_fil()
     col_com_input <- get_fil_com()
-    u_oasis <- oasis_data
+    u_oasis <- get_oasis()
     if(input$select_hemisphere=="left"){
       u_oasis <- u_oasis[-78:-151]
       region_names <- names(u_oasis[-1:-3])
@@ -219,6 +227,7 @@ server<-function(input, output,session) {
             )}
         ))}
     }else{
+      x <- append(x,list(actionButton("dp","Distribution Plots")))
       for (ff in get_fil_com()) {
         x <- append(x,list(
           if(as.character(ff)=="ID"){}
@@ -235,24 +244,26 @@ server<-function(input, output,session) {
                         })
           }else{
             sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
-                        min = min(oasis_data[[ff]]),max=max(oasis_data[[ff]]),
+                        min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
                         value = {if(!is.null(input[[paste0(ff,"_range")]])){
                           input[[paste0(ff,"_range")]]
                         }else{
-                          c(min(oasis_data[[ff]]),max(oasis_data[[ff]]))
+                          c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
                         }
                         }
             )
           }
         ))
       }
-      x <- append(x,list( radioButtons("com_way","Descriptive Statistics",
+      x <- append(x,list(radioButtons("com_way","Descriptive Statistics",
                                        choices = c("median","mean","SD"),
                                        selected = {
                                          if(is.null(input$com_way)){"median"}
                                          else{input[["com_way"]]}
                                        },
                                        inline = TRUE)))
+      
+      
     }
     return(x)
   })
@@ -322,14 +333,30 @@ server<-function(input, output,session) {
   
   
   #######################################################
-  ######update the tabs when single_region selected######
+  ###################control panel tab###################
   ####################################################### 
   observeEvent(input$single_region,{
-    if(input$single_region==0)
+    if(input$single_region==0){
       hideTab(inputId ="tab",target = "DistributionPlot")
+      
+    }
     
-    if(input$single_region==01)
+    
+    if(input$single_region==1){
       showTab(inputId ="tab",target = "DistributionPlot")
+      
+      
+    }
+  })
+  
+  observeEvent(input$com,{
+    if(input$com==0){
+      hideTab(inputId ="tab",target="Quality Control")
+    }
+    
+    if(input$com==1){
+      showTab(inputId ="tab",target="Quality Control")
+    }
   })
   
   
@@ -385,9 +412,9 @@ server<-function(input, output,session) {
         auswahl_area[[auswahl_region]]<-save
       }
     }else if(input$com==0){
-      # showModal(modalDialog(title = "INPUT ERROR",
-      #                       "The inputed date should be one line or composite display selected",
-      #                       easyClose = TRUE))
+      showModal(modalDialog(title = "INPUT ERROR",
+                            "The inputed date should be one line or composite display selected",
+                            easyClose = TRUE))
       return(NULL)
     }
     else{
@@ -566,7 +593,7 @@ server<-function(input, output,session) {
       }
       
       auswahl_region <- input$region
-      oasis_data <- oasis_data[-1:-3]
+      oasis_data <- get_oasis()[-1:-3]
       selectedData <- oasis_data[auswahl_region]
       colnames(selectedData) <- c("distributionPlot")
       
@@ -581,6 +608,29 @@ server<-function(input, output,session) {
     })
     
   })
+  
+  
+  ###########################################
+  ##########ouput Quality Control############
+  ###########################################
+  
+
+  # output$quality <- renderPlot({
+  #   data <- get_choice()
+  #   data <- data[-1:-3]
+  # 
+  #   data <- melt(data)
+  #   names(data) <- c("area","thickness")
+  #   p <- ggplot(data,aes(x=area,y=thickness,fill= area))+
+  #     geom_flat_violin(position = position_nudge(x=.2,y=0))+
+  #     geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
+  #     geom_boxplot(aes(x=as.numeric(area)+.2,y=thickness),outlier.shape = NA,alpha=0.3,width=.1,color="BLACK")+
+  #     coord_flip()+
+  #     theme_cowplot()+
+  #     guides(fill=FALSE)
+  #   p
+  # 
+  # })
   
   
   
