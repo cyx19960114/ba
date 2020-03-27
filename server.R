@@ -13,6 +13,7 @@ library(colourpicker)
 library(scales)
 library(processx)
 library(reshape2)
+library(cowplot)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 # source("title_fun.R")
 file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
@@ -234,7 +235,7 @@ server<-function(input, output,session) {
           else if(as.character(ff)=="sex"){
             selectInput("sex_range",
                         label = "sex",
-                        choices = unique(append("All",get_choice()[["sex"]])),
+                        choices = unique(append("All",c("F","M"))),
                         selected = {
                           if (is.null(input[["sex_range"]])||"All"==input[["sex_range"]]){
                             "All"
@@ -629,28 +630,36 @@ server<-function(input, output,session) {
   })
   
   
+  
 
   output$quality <- renderPlot({
-    data <- get_oasis()
-    data <- data[-1:-3]
-
-    data <- melt(data)
-    names(data) <- c("area","thickness")
-    data$lr <- substr(data$area,1,1)
-    data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
-    data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
-    data$lr <- as.factor(data$lr)
-    data$area <- as.factor(substring(data$area,4))
+    if(is.null(input$dp) || input$dp==0){return(NULL)}
     
-    p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
-      geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
-      geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
-      geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
-      coord_flip()+
-      facet_wrap(~lr)+
-      theme_cowplot()+
-      guides(fill=FALSE)
-    p
+    isolate({
+      
+      data <- get_choice()
+      data <- data[-1:-3]
+      
+      data <- melt(data)
+      names(data) <- c("area","thickness")
+      data$lr <- substr(data$area,1,1)
+      data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
+      data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
+      data$lr <- as.factor(data$lr)
+      data$area <- ordered(substring(data$area,4),rev(unique(substring(data$area,4))))
+      
+      p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
+        geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
+        geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
+        geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
+        coord_flip()+
+        facet_wrap(~lr)+
+        theme_cowplot()+
+        guides(fill=FALSE)
+      p
+    })
+    
+
 
   })
   
