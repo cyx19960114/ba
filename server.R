@@ -544,7 +544,6 @@ server<-function(input, output,session) {
   })
   
   
-  observe({if(is.null(event_data("plotly_relayout"))){}else{print(event_data("plotly_relayout"))}})
   
   
   #p<-output$ggseg3d
