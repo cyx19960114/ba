@@ -626,7 +626,7 @@ server<-function(input, output,session) {
   ###########################################
   
   observeEvent(input$dp,{
-    updateTabsetPanel(session,"tab","quality")
+    updateTabsetPanel(session,"tab","Quality Control")
   })
   
   
