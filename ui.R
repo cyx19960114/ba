@@ -158,7 +158,7 @@ fluidPage(
       tabsetPanel(type = "tabs",id = "tab",
                   tabPanel("Table",DT::dataTableOutput("table")),
                   tabPanel("3D",plotlyOutput("ggseg3d",height = "700px")),
-                  tabPanel("Quality Control",plotOutput("quality",height = "12000px")),
+                  tabPanel("Quality Control",plotOutput("quality",height = "7500px")),
                   tabPanel("DistributionPlot",plotOutput("distributionPlot")))
       
     )

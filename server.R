@@ -391,7 +391,6 @@ server<-function(input, output,session) {
   })
   
   
-  # observeEvent(input$Re)
   
   get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
@@ -491,7 +490,9 @@ server<-function(input, output,session) {
                      options.legend = (colorbar=list(title=list(text="mm")))) %>%
         pan_camera("left lateral") %>% 
         event_register("plotly_relayout") %>% 
+        layout(scene=list(camera=list(center=list(z=-0.4))))%>%
         remove_axes()
+      
       
       filter_data <<- NULL
       if(input$com==0){
@@ -512,12 +513,19 @@ server<-function(input, output,session) {
       if(is.null(filter_data)){
         gg
       }else{
-        gg%>%layout(annotations=list(visible=TRUE,text=filter_data,showarrow=FALSE,x=0,y=1,align="left",font=list(family="Arial",size=13)))
+        gg%>%layout(annotations=list(visible=TRUE,
+                                     text=filter_data,
+                                     showarrow=FALSE,
+                                     x=0,y=1,
+                                     align="left",
+                                     font=list(family="Arial",size=13)))
         
       }
       
     })
   })
+  
+  
   
   observeEvent(input$ab,{
     updateTabsetPanel(session,"tab",selected = "3D")
@@ -534,6 +542,9 @@ server<-function(input, output,session) {
       return(d$scene.camera[["eye"]])
     }
   })
+  
+  
+  observe({if(is.null(event_data("plotly_relayout"))){}else{print(event_data("plotly_relayout"))}})
   
   
   #p<-output$ggseg3d
@@ -614,23 +625,35 @@ server<-function(input, output,session) {
   ##########ouput Quality Control############
   ###########################################
   
+  observeEvent(input$dp,{
+    updateTabsetPanel(session,"tab","quality")
+  })
+  
+  
 
-  # output$quality <- renderPlot({
-  #   data <- get_choice()
-  #   data <- data[-1:-3]
-  # 
-  #   data <- melt(data)
-  #   names(data) <- c("area","thickness")
-  #   p <- ggplot(data,aes(x=area,y=thickness,fill= area))+
-  #     geom_flat_violin(position = position_nudge(x=.2,y=0))+
-  #     geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
-  #     geom_boxplot(aes(x=as.numeric(area)+.2,y=thickness),outlier.shape = NA,alpha=0.3,width=.1,color="BLACK")+
-  #     coord_flip()+
-  #     theme_cowplot()+
-  #     guides(fill=FALSE)
-  #   p
-  # 
-  # })
+  output$quality <- renderPlot({
+    data <- get_oasis()
+    data <- data[-1:-3]
+
+    data <- melt(data)
+    names(data) <- c("area","thickness")
+    data$lr <- substr(data$area,1,1)
+    data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
+    data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
+    data$lr <- as.factor(data$lr)
+    data$area <- as.factor(substring(data$area,4))
+    
+    p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
+      geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
+      geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
+      geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
+      coord_flip()+
+      facet_wrap(~lr)+
+      theme_cowplot()+
+      guides(fill=FALSE)
+    p
+
+  })
   
   
   
