@@ -646,7 +646,11 @@ server<-function(input, output,session) {
       data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
       data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
       data$lr <- as.factor(data$lr)
-      data$area <- ordered(substring(data$area,4),rev(unique(substring(data$area,4))))
+      if(!is.null(input$name_file)){
+        data$area <- ordered(substring(data$area,2),rev(unique(substring(data$area,2))))
+      }else{
+        data$area <- ordered(substring(data$area,4),rev(unique(substring(data$area,4))))
+      }
       
       p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
         geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
