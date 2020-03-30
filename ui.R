@@ -20,10 +20,25 @@ u_hemisphere<-c("left","right")
 u_format<-c("svg","pdf","png")
 
 dashboardPage(
-  dashboardHeader("ggseg3d"),
-  dashboardSidebar(),  
-  dashboardBody(
-    
+  dashboardHeader(title="ggseg3d"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Data",NULL,icon = icon("file"),
+               fileInput("data_table","TableInput",accept = c("xlsx","xls"))),
+      
+      menuItem("Atlas",NULL,icon=icon("file-alt"),
+               fileInput("name_file","Thinkness Names correction",accept = c("xlsx","xls"))),
+      menuItem("Quality Control",NULL,icon=icon("chart-bar"),
+               selectInput("fil",label = "Filter",choices = names(OASIS),multiple = TRUE),
+               actionButton("dp","Distribution Plot")),
+      
+      menuItem("Descriptive Statistics",NULL,icon=icon("brain"),
+               selectInput("fil2",label = "Filter",choices = names(OASIS),multiple = TRUE),
+               actionButton("ab","Brain Map")
+               ),
+      menuItem("Statistics",NULL)
     )
-  )
+  ),  
+  dashboardBody()
+)
 

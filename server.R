@@ -198,7 +198,7 @@ server<-function(input, output,session) {
   #######################################################
   output$kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
-    if(input$com==0){
+    if(input$com==0||is.null(input$com)){
       for (ff in get_fil()) {
         x <- append(x,list(
           if(as.character(ff)=="sex"){
@@ -570,21 +570,7 @@ server<-function(input, output,session) {
   })
   
   
-  observe({
-    if(input$com==0){
-      region_name <- names(get_choice())[-1:-3]
-      updateSelectInput(session,"region",
-                        choices = region_name,
-                        selected = {
-                          if(is.null(input$region)){
-                            region_name[[1]]
-                          }else{
-                            input$region
-                          }
-                        })
-      
-    }
-  })
+
   
   
   ###########################################
