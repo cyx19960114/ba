@@ -34,8 +34,6 @@ server<-function(input, output,session) {
   
   
   
-  
-  
   #######################################################
   #############transform the names of OASIS##############
   #######################################################
@@ -101,6 +99,10 @@ server<-function(input, output,session) {
   })
   
   
+  get_qc_fil <- reactive({
+    input$qc_fil
+  })
+  
   
   
   #######################################################
@@ -139,17 +141,9 @@ server<-function(input, output,session) {
   #filter the data from according to selected condition##
   #######################################################
   get_choice <- reactive({    # get the select col and return the selected date
-    aa <- input$name_file
     col_input <- get_fil()
     col_com_input <- get_fil_com()
     u_oasis <- get_oasis()
-    if(input$select_hemisphere=="left"){
-      u_oasis <- u_oasis[-78:-151]
-      region_names <- names(u_oasis[-1:-3])
-    }else if(input$select_hemisphere=="right"){
-      u_oasis <- u_oasis[-4:-77]
-      region_names <- names(u_oasis[-1:-3])
-    }
     if(input$com==0){
       for (col in col_input) {
         v <- input[[col]]
@@ -180,6 +174,36 @@ server<-function(input, output,session) {
   })
   
   
+  
+  get_qc_choice <- reactive({    # get the select col and return the selected date
+    col_input <- get_qc_fil()
+    u_oasis <- get_oasis()
+    
+    for (col in col_input) {
+      if(as.character(col)=='sex'){
+        if((!is.null(input$sex_range))&&input$sex_range!="All"){
+          u_oasis <- u_oasis[u_oasis$sex==input$sex_range,]
+        }
+      }else if(!is.null(input[[paste0(col,"_range")]])){
+        v_min <- min(input[[paste0(col,"_range")]])
+        v_max <- max(input[[paste0(col,"_range")]])
+        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
+      
+    }
+    
+    return(u_oasis)
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   ## get the region names after filter
   get_region_names <- reactive({
     region_names <- names(get_choice())
@@ -196,7 +220,9 @@ server<-function(input, output,session) {
   #######################################################
   ##########output the ui from the selected col##########
   #######################################################
-  output$kon <- renderUI({     # ouput the select UI
+  
+  
+  output$ds_kon <- renderUI({     # ouput the select UI
     x <- vector("list",length=length(get_fil()))
     if(input$com==0||is.null(input$com)){
       for (ff in get_fil()) {
@@ -228,7 +254,7 @@ server<-function(input, output,session) {
             )}
         ))}
     }else{
-      x <- append(x,list(actionButton("dp","Distribution Plots")))
+      # x <- append(x,list(actionButton("dp","Distribution Plots")))
       for (ff in get_fil_com()) {
         x <- append(x,list(
           if(as.character(ff)=="ID"){}
@@ -256,18 +282,56 @@ server<-function(input, output,session) {
           }
         ))
       }
-      x <- append(x,list(radioButtons("com_way","Descriptive Statistics",
-                                       choices = c("median","mean","SD"),
-                                       selected = {
-                                         if(is.null(input$com_way)){"median"}
-                                         else{input[["com_way"]]}
-                                       },
-                                       inline = TRUE)))
+      # x <- append(x,list(radioButtons("com_way","Descriptive Statistics",
+      #                                 choices = c("median","mean","SD"),
+      #                                 selected = {
+      #                                   if(is.null(input$com_way)){"median"}
+      #                                   else{input[["com_way"]]}
+      #                                 },
+      #                                 inline = TRUE)))
       
       
     }
     return(x)
   })
+  
+  
+  ## Quality Control
+  output$qc_kon <- renderUI({
+    x <- NULL
+    for (ff in get_qc_fil()) {
+      x <- append(x,list(
+        if(as.character(ff)=="ID"){}
+        else if(as.character(ff)=="sex"){
+          selectInput("sex_range",
+                      label = "sex",
+                      choices = unique(append("All",c("F","M"))),
+                      selected = {
+                        if (is.null(input[["sex_range"]])||"All"==input[["sex_range"]]){
+                          "All"
+                        } else{
+                          input[["sex_range"]]
+                        }
+                      })
+        }else{
+          sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
+                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
+                      value = {if(!is.null(input[[paste0(ff,"_range")]])){
+                        input[[paste0(ff,"_range")]]
+                      }else{
+                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
+                      }
+                      }
+          )
+        }
+      ))
+    }
+    
+    return(x)
+  })
+  
+  
+  
   
   ## get the composite way 
   aus_daten <- reactive({  
@@ -288,20 +352,34 @@ server<-function(input, output,session) {
   #######################################################
   ##################output OASIS table###################
   #######################################################
-  output$table<- DT::renderDataTable({
-    if(!is.null(input$name_file)){}
-    lapply(get_fil(), function(x){input[[x]]!=""})
-    lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
-    if (input$com) {}
-    if(is.null(input$com_way)){}
-    input$select_hemisphere
-    if(is.null(get_fil())&&is.null(get_fil_com())){return()}
-    isolate({
-      
-      ausgewaehlte_daten <- get_choice()
-      DT::datatable(ausgewaehlte_daten,class = "display nowrap")
-    })
+  output$ds_table<- DT::renderDataTable({
+    # if(!is.null(input$name_file)){}
+    # lapply(get_fil(), function(x){input[[x]]!=""})
+    # lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
+    # if (input$com) {}
+    # if(is.null(input$com_way)){}
+    # input$select_hemisphere
+    # if(is.null(get_fil())&&is.null(get_fil_com())){return()}
+    # isolate({
+    ausgewaehlte_daten <- get_choice()
+    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
+    # })
   })
+  
+  output$qc_table<- DT::renderDataTable({
+    # if(!is.null(input$name_file)){}
+    # lapply(get_qc_fil(), function(x){input[[paste0(x,"_range")]]!=0})
+    # # if (input$com) {}
+    # # if(is.null(input$com_way)){}
+    # # input$select_hemisphere
+    # if(is.null(is.null(get_qc_fil()))){return()}
+    # isolate({
+    ausgewaehlte_daten <- get_qc_choice()
+    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
+    # })
+  })
+  
+  
   
   
   
@@ -570,7 +648,7 @@ server<-function(input, output,session) {
   })
   
   
-
+  
   
   
   ###########################################
@@ -612,18 +690,17 @@ server<-function(input, output,session) {
   ###########################################
   
   observeEvent(input$dp,{
-    updateTabsetPanel(session,"tab","Quality Control")
+    updateTabsetPanel(session,"qc_tab","Quality Raincloud")
   })
   
   
   
-
+  
   output$quality <- renderPlot({
     if(is.null(input$dp) || input$dp==0){return(NULL)}
     
     isolate({
-      
-      data <- get_choice()
+      data <- get_qc_choice()
       data <- data[-1:-3]
       
       data <- melt(data)
@@ -649,8 +726,8 @@ server<-function(input, output,session) {
       p
     })
     
-
-
+    
+    
   })
   
   
