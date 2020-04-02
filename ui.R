@@ -60,21 +60,27 @@ dashboardPage(
                conditionalPanel(
                  condition = "input.com==1",
                  radioButtons("com_way_c",label = "Central tendency",
-                             choices = c("median","mean"),selected="median",inline = TRUE),
+                              choices = c("median","mean"),selected="median",inline = TRUE),
                ),
-
+               
                conditionalPanel(
                  condition = "input.com==1",
                  radioButtons("com_way_d",label = "Dispersion",
                               choices = c("SD","SEM"),selected=character(0),inline = TRUE),
+                 
                ),
+               
+               
+               
+               
                ###调整调用的函数
                
                radioButtons(inputId = "select_hemisphere",
-                           label = "Choose Hemisphere",
-                           choices = c(u_hemisphere,"both"),
-                           selected = "both",inline = TRUE
+                            label = "Choose Hemisphere",
+                            choices = c(u_hemisphere,"both"),
+                            selected = "both",inline = TRUE
                ),
+               
                # radioButtons(inputId=)
                
                

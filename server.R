@@ -19,6 +19,10 @@ source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/f
 file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
 
+sem <- function(x){
+  return(sd(x)/sqrt(length(x)))
+}
+
 
 
 
@@ -334,18 +338,45 @@ server<-function(input, output,session) {
   
   
   ## get the composite way 
-  aus_daten <- reactive({  
-    if(!is.null(input$com_way)){
-      switch (as.vector(input$com_way[[1]]),
-              "median" = "median",
-              "mean" = "mean",
-              "SD"= "sd"
-      )
-    }
+  
+  
+  com_way<<-NULL
+  observeEvent(input$com_way_c,
+               {
+                 updateRadioButtons(session,
+                                    "com_way_d",
+                                    choices = c("SD","SEM"),
+                                    selected = character(0),
+                                    inline=TRUE)
+                 com_way <<- input$com_way_c
+               }
+  )
+  observeEvent(input$com_way_d,
+               {
+                 updateRadioButtons(session,
+                                    "com_way_c",
+                                    choices = c("median","mean"),
+                                    selected = character(0),
+                                    inline = TRUE)
+                 com_way<<-input$com_way_d
+                 # print(com_way)
+               })
+  
+  
+  
+  aus_daten <- reactive({
+    input$com_way_c
+    input$com_way_d
+    switch (as.vector(com_way),
+            "median" = "median",
+            "mean" = "mean",
+            "SD" = "sd",
+            "SEM" =  "sem")   
   })
   
+
   
-  
+  observe({print(aus_daten())})
   
   
   
@@ -353,30 +384,13 @@ server<-function(input, output,session) {
   ##################output OASIS table###################
   #######################################################
   output$ds_table<- DT::renderDataTable({
-    # if(!is.null(input$name_file)){}
-    # lapply(get_fil(), function(x){input[[x]]!=""})
-    # lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]!=0})
-    # if (input$com) {}
-    # if(is.null(input$com_way)){}
-    # input$select_hemisphere
-    # if(is.null(get_fil())&&is.null(get_fil_com())){return()}
-    # isolate({
     ausgewaehlte_daten <- get_choice()
     DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
-    # })
   })
   
   output$qc_table<- DT::renderDataTable({
-    # if(!is.null(input$name_file)){}
-    # lapply(get_qc_fil(), function(x){input[[paste0(x,"_range")]]!=0})
-    # # if (input$com) {}
-    # # if(is.null(input$com_way)){}
-    # # input$select_hemisphere
-    # if(is.null(is.null(get_qc_fil()))){return()}
-    # isolate({
     ausgewaehlte_daten <- get_qc_choice()
     DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
-    # })
   })
   
   
@@ -500,7 +514,6 @@ server<-function(input, output,session) {
       auswahl_area <- auswahl_area[1,]
     }
     auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
-    
     auswahl_area <- t(auswahl_area)
     auswahl_data <- data.frame(
       area = as.character(row.names(auswahl_area)),
@@ -512,6 +525,8 @@ server<-function(input, output,session) {
     
     return(auswahl_data)
   })
+  
+  
   
   
   #######################################################
@@ -526,7 +541,6 @@ server<-function(input, output,session) {
       #   return()
       # }
       auswahl_data <- get_auswahl_data()
-      
       if (is.null(auswahl_data)) {
         return()
       }
@@ -535,15 +549,15 @@ server<-function(input, output,session) {
       #######new values and colors#######
       ###################################
       
-      auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
-      auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
-      if (1<index_selection()) {
-        for (i in 1:(index_selection()-1)) {
-          auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
-          auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
-        }
-      }
-      names(auswahl_wert) <- auswahl_color
+      # auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
+      # auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
+      # if (1<index_selection()) {
+      #   for (i in 1:(index_selection()-1)) {
+      #     auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
+      #     auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
+      #   }
+      # }
+      # names(auswahl_wert) <- auswahl_color
       
       
       
@@ -551,7 +565,7 @@ server<-function(input, output,session) {
       ########select_hemisphere##########
       ###################################
       auswahl_hemisphere<-input$select_hemisphere
-      if(auswahl_hemisphere=="All"){auswahl_hemisphere=c("left","right")}
+      if(auswahl_hemisphere=="both"){auswahl_hemisphere=c("left","right")}
       
       
       ###################################
@@ -562,7 +576,7 @@ server<-function(input, output,session) {
                      atlas = get_altes(),
                      colour = "wert", text = " ",
                      surface = "LCBC",
-                     palette = sort(auswahl_wert),
+                     # palette = sort(auswahl_wert),
                      hemisphere = auswahl_hemisphere,
                      na.alpha= .5,
                      show.legend = TRUE,
