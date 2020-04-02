@@ -18,6 +18,12 @@ u_sex <- c("F","M")
 u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
 u_hemisphere<-c("left","right")
 u_format<-c("svg","pdf","png")
+modify_stop_propagation <- function(x) {
+  x$children[[1]]$attribs$onclick = "event.stopPropagation()"
+  x
+}
+
+
 
 dashboardPage(
   dashboardHeader(title="ggseg3d"),
@@ -70,18 +76,29 @@ dashboardPage(
                  
                ),
                
-               
-               
-               
-               ###调整调用的函数
-               
                radioButtons(inputId = "select_hemisphere",
                             label = "Choose Hemisphere",
                             choices = c(u_hemisphere,"both"),
                             selected = "both",inline = TRUE
                ),
                
-               # radioButtons(inputId=)
+               menuItem("Color",expandedName = "col",
+                        colourInput("color_obergrenze", "Please select the color of the upper bound", "red"),
+                        numericInput(inputId = 'wert_obergrenze',
+                                     label = 'Please choose a value for the upper bound',
+                                     4.2),
+
+                        colourInput("color_untergrenze", "Please select the color of the lower bound", "blue"),
+                        numericInput(inputId = 'wert_untergrenze',
+                                     label = 'Please choose a value for the lower bound',
+                                     1.5),
+                        actionButton("add_mitte", "Add new values and colors"),
+                        hr(),
+                        actionButton("remove_mitte","Remove"),
+                        hr()
+               ),
+               
+              
                
                
                
@@ -117,7 +134,7 @@ dashboardPage(
         type="tabs",id="ds_tab",
         tabPanel("Table",DT::dataTableOutput("ds_table")),
         tabPanel("3D",plotlyOutput("ggseg3d",height = "700px"))
-      )
+      ),
       
     )
   )

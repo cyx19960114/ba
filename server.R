@@ -359,7 +359,6 @@ server<-function(input, output,session) {
                                     selected = character(0),
                                     inline = TRUE)
                  com_way<<-input$com_way_d
-                 # print(com_way)
                })
   
   
@@ -376,7 +375,6 @@ server<-function(input, output,session) {
   
 
   
-  observe({print(aus_daten())})
   
   
   
@@ -400,29 +398,42 @@ server<-function(input, output,session) {
   #######################################################
   ###################color update auto###################
   #######################################################  
-  observeEvent({
-    input$fil
-    input$fil_com
-    is.null(input$com_way)
-    lapply(get_fil(), function(x){input[[x]]})
-    lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
-    input$select_hemisphere
+  observeEvent(
+    {
+    # input$fil
+    # input$fil_com
+    # is.null(input$com_way_c)
+    # is.null(input$com_way_d)
+    # lapply(get_fil(), function(x){input[[x]]})
+    # lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
+    # input$select_hemisphere
+    input$com_way_c
+    input$com_way_d
+    input$sidebarItemExpanded
+    com_way
+    
   },{
     ##change the color boundary automatically
+      
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
-    if (!is.null(input$com_way)) {
-      wert[1,] <- apply(wert, 2, aus_daten())
-    }
-    wert <- wert%>%mutate_if(is.numeric,round,2)
+    wert <- apply(wert, 2, aus_daten())
+    
+    # wert <- wert%>%mutate_if(is.numeric,round,2)
+    wert <- round(wert,2)
+    # print(wert)
     max_wert<-max(wert)
     min_wert<-min(wert)
-    updateNumericInput(session, "wert_obergrenze", value = max_wert)
-    updateNumericInput(session, "wert_untergrenze", value = min_wert)
-  })
+    print(max_wert)
+    updateNumericInput(session,"wert_obergrenze",value = max_wert)
+    updateNumericInput(session, inputId = "wert_untergrenze", value = min_wert)
+    
+  }
+)
   
+  observe(print(input$wert_obergrenze))
   
-  
+  observe(print(input$sidebarItemExpanded))
   
   
   #######################################################
