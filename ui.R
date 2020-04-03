@@ -148,6 +148,7 @@ dashboardPage(
       tabsetPanel(
         type="tabs",id="ds_tab",
         tabPanel("Table",DT::dataTableOutput("ds_table")),
+        tabPanel("Statistics",DT::dataTableOutput("statistics")),
         tabPanel("3D",plotlyOutput("ggseg3d",height = "700px"))
       ),
       

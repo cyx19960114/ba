@@ -406,6 +406,21 @@ server<-function(input, output,session) {
     DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
   })
   
+  output$statistics <- DT::renderDataTable({
+    data <- get_choice()
+    data <- data[-1:-3]
+    data_mean <- round(apply(data, 2, mean),2)
+    
+    data_median <- round(apply(data,2,median),2)
+    data_sd <- round(apply(data, 2, sd),2)
+    data_sem <- round(apply(data, 2, sem),4)
+    
+    frame_statistics <- data.frame("mean"=data_mean,"median"=data_median,
+                                   "SD"=data_sd,"SEM"=data_sem)
+    
+    DT::datatable(frame_statistics,options = list(scrolly=TRUE))
+  })
+  
   
   
   
