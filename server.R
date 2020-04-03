@@ -28,9 +28,14 @@ sem <- function(x){
 
 
 server<-function(input, output,session) {
-  OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
-  OASIS[-1:-2] <- apply(OASIS[-1:-2],2,as.numeric)
-  id_sex_age <- OASIS[,1:3]
+  OASIS <<- read_excel("OASIS.xlsx",col_types = c("text"))
+  OASIS[-1:-2] <<- apply(OASIS[-1:-2],2,as.numeric)
+  
+  observeEvent(input$data_table,
+               if(!is.null(input$data_table)){
+                 OASIS <<- read_excel(input$data_table[["datapath"]],col_types = "text")
+                 OASIS[-1:-2] <<- apply(OASIS[-1:-2],2,as.numeric)
+               })
   
   
   
@@ -45,6 +50,7 @@ server<-function(input, output,session) {
   
   
   get_oasis <- reactive({
+    is.null(input$data_table)
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
       oasis_r <- OASIS[-1:-3]
@@ -81,7 +87,11 @@ server<-function(input, output,session) {
       names(OASIS)[-1:-3] <- pattern
       
       oasis_data <- OASIS
+      updateSelectInput(session,"qc_fil",choices = c("sex","age",pattern))
+      updateSelectInput(session,"fil",choices = c("ID","sex","age",pattern))
+      updateSelectInput(session,"fil_com",choices = c("sex","age",pattern))
       
+      print("change")
       return(oasis_data)
     }else{
       oasis_data <- OASIS
@@ -89,8 +99,6 @@ server<-function(input, output,session) {
     }
     
   })
-  
-  
   
   
   
@@ -146,6 +154,7 @@ server<-function(input, output,session) {
   #filter the data from according to selected condition##
   #######################################################
   get_choice <- reactive({    # get the select col and return the selected date
+    input$data_table
     col_input <- get_fil()
     col_com_input <- get_fil_com()
     u_oasis <- get_oasis()
@@ -183,15 +192,14 @@ server<-function(input, output,session) {
   get_qc_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_qc_fil()
     u_oasis <- get_oasis()
-    
     for (col in col_input) {
       if(as.character(col)=='sex'){
-        if((!is.null(input$sex_range))&&input$sex_range!="All"){
-          u_oasis <- u_oasis[u_oasis$sex==input$sex_range,]
+        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
+          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
         }
-      }else if(!is.null(input[[paste0(col,"_range")]])){
-        v_min <- min(input[[paste0(col,"_range")]])
-        v_max <- max(input[[paste0(col,"_range")]])
+      }else if(!is.null(input[[paste0(col,"_qc")]])){
+        v_min <- min(input[[paste0(col,"_qc")]])
+        v_max <- max(input[[paste0(col,"_qc")]])
         u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
         u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
       
@@ -287,13 +295,6 @@ server<-function(input, output,session) {
           }
         ))
       }
-      # x <- append(x,list(radioButtons("com_way","Descriptive Statistics",
-      #                                 choices = c("median","mean","SD"),
-      #                                 selected = {
-      #                                   if(is.null(input$com_way)){"median"}
-      #                                   else{input[["com_way"]]}
-      #                                 },
-      #                                 inline = TRUE)))
       
       
     }
@@ -306,23 +307,22 @@ server<-function(input, output,session) {
     x <- NULL
     for (ff in get_qc_fil()) {
       x <- append(x,list(
-        if(as.character(ff)=="ID"){}
-        else if(as.character(ff)=="sex"){
-          selectInput("sex_range",
+        if(as.character(ff)=="sex"){
+          selectInput("sex_qc",
                       label = "sex",
                       choices = unique(append("All",c("F","M"))),
                       selected = {
-                        if (is.null(input[["sex_range"]])||"All"==input[["sex_range"]]){
+                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
                           "All"
                         } else{
-                          input[["sex_range"]]
+                          input[["sex_qc"]]
                         }
                       })
         }else{
-          sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
+          sliderInput(paste0(ff,"_qc"),paste(ff,"Range"),
                       min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
-                      value = {if(!is.null(input[[paste0(ff,"_range")]])){
-                        input[[paste0(ff,"_range")]]
+                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
+                        input[[paste0(ff,"_qc")]]
                       }else{
                         c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
                       }
@@ -339,22 +339,7 @@ server<-function(input, output,session) {
   
   
   ## get the composite way 
-  
-  # output$com_c <- renderUI({
-  #   if(!is.null(input$com_way_d)){
-  #     tagList(
-  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = character(0),inline = TRUE)
-  #     )
-  #   }else if(!is.null(input$com_way_c)){
-  #     tagList(
-  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = input$com_way_c,inline = TRUE)
-  #     )
-  #   }else{
-  #     tagList(
-  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE)
-  #     )
-  #   }
-  # })
+
   
   com_cd <- "mean"
   
