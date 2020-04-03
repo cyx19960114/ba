@@ -340,39 +340,68 @@ server<-function(input, output,session) {
   
   ## get the composite way 
   
+  # output$com_c <- renderUI({
+  #   if(!is.null(input$com_way_d)){
+  #     tagList(
+  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = character(0),inline = TRUE)
+  #     )
+  #   }else if(!is.null(input$com_way_c)){
+  #     tagList(
+  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = input$com_way_c,inline = TRUE)
+  #     )
+  #   }else{
+  #     tagList(
+  #       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE)
+  #     )
+  #   }
+  # })
   
-  com_way<<-NULL
-  observeEvent(input$com_way_c,
-               {
-                 updateRadioButtons(session,
-                                    "com_way_d",
-                                    choices = c("SD","SEM"),
-                                    selected = character(0),
-                                    inline=TRUE)
-                 com_way <<- input$com_way_c
-               }
-  )
-  observeEvent(input$com_way_d,
-               {
-                 updateRadioButtons(session,
-                                    "com_way_c",
-                                    choices = c("median","mean"),
-                                    selected = character(0),
-                                    inline = TRUE)
-                 com_way<<-input$com_way_d
-               })
+  com_cd <- "mean"
+  
+  output$com_cd <- renderUI({
+    tagList(
+      radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE),
+      radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
+    )
+  })
+  
+  
+  observeEvent(input$com_way_c,{
+    output$com_cd <- renderUI({
+      tagList(
+        radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = input$com_way_c,inline = TRUE),
+        radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
+      )
+    })
+    com_cd <<- input$com_way_c
+  })
+  
+  observeEvent(input$com_way_d,{
+    output$com_cd <- renderUI({
+      tagList(
+        radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = character(0),inline = TRUE),
+        radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = input$com_way_d,inline = TRUE)
+      )
+    })
+    com_cd <<- input$com_way_d
+  })
+  
+
   
   
   
   aus_daten <- reactive({
     input$com_way_c
     input$com_way_d
-    switch (as.vector(com_way),
+    switch (as.vector(com_cd),
             "median" = "median",
             "mean" = "mean",
             "SD" = "sd",
-            "SEM" =  "sem")   
+            "SEM" =  "sem")
   })
+  
+  
+  
   
 
   
@@ -399,42 +428,32 @@ server<-function(input, output,session) {
   #######################################################
   ###################color update auto###################
   #######################################################  
-  observeEvent(
-    {
-    # input$fil
-    # input$fil_com
-    # is.null(input$com_way_c)
-    # is.null(input$com_way_d)
-    # lapply(get_fil(), function(x){input[[x]]})
-    # lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
-    # input$select_hemisphere
+  observeEvent({
     input$com_way_c
     input$com_way_d
     input$sidebarItemExpanded
-    com_way
     
   },{
-    ##change the color boundary automatically
       
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
     wert <- apply(wert, 2, aus_daten())
     
     # wert <- wert%>%mutate_if(is.numeric,round,2)
-    wert <- round(wert,2)
-    # print(wert)
+    if(aus_daten()!="sem"){
+      wert <- round(wert,2)
+    }else{
+      wert <- round(wert,4)      
+    }
     max_wert<-max(wert)
     min_wert<-min(wert)
-    print(max_wert)
     updateNumericInput(session,"wert_obergrenze",value = max_wert)
     updateNumericInput(session, inputId = "wert_untergrenze", value = min_wert)
     
   }
 )
   
-  observe(print(input$wert_obergrenze))
   
-  observe(print(input$sidebarItemExpanded))
   
   
   #######################################################
@@ -525,7 +544,12 @@ server<-function(input, output,session) {
       auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
       auswahl_area <- auswahl_area[1,]
     }
-    auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
+    if(aus_daten()!="sem"){
+      auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
+      
+    }else{
+      auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,4)
+    }
     auswahl_area <- t(auswahl_area)
     auswahl_data <- data.frame(
       area = as.character(row.names(auswahl_area)),
@@ -561,15 +585,15 @@ server<-function(input, output,session) {
       #######new values and colors#######
       ###################################
       
-      # auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
-      # auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
-      # if (1<index_selection()) {
-      #   for (i in 1:(index_selection()-1)) {
-      #     auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
-      #     auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
-      #   }
-      # }
-      # names(auswahl_wert) <- auswahl_color
+      auswahl_wert <- c(input$wert_obergrenze,input$wert_untergrenze)
+      auswahl_color <- c(input$color_obergrenze,input$color_untergrenze)
+      if (1<index_selection()) {
+        for (i in 1:(index_selection()-1)) {
+          auswahl_wert[i+2] <- input[[paste("wert_mitte", i, sep = "_")]]
+          auswahl_color[i+2] <- input[[paste("color_mitte", i, sep = "_")]]
+        }
+      }
+      names(auswahl_wert) <- auswahl_color
       
       
       
@@ -588,7 +612,7 @@ server<-function(input, output,session) {
                      atlas = get_altes(),
                      colour = "wert", text = " ",
                      surface = "LCBC",
-                     # palette = sort(auswahl_wert),
+                     palette = sort(auswahl_wert),
                      hemisphere = auswahl_hemisphere,
                      na.alpha= .5,
                      show.legend = TRUE,
@@ -633,7 +657,7 @@ server<-function(input, output,session) {
   
   
   observeEvent(input$ab,{
-    updateTabsetPanel(session,"tab",selected = "3D")
+    updateTabsetPanel(session,"ds_tab",selected = "3D")
   })
   
   ###########################################

@@ -26,6 +26,7 @@ modify_stop_propagation <- function(x) {
 
 
 dashboardPage(
+
   dashboardHeader(title="ggseg3d"),
   dashboardSidebar(
     sidebarMenu(
@@ -65,16 +66,9 @@ dashboardPage(
                
                conditionalPanel(
                  condition = "input.com==1",
-                 radioButtons("com_way_c",label = "Central tendency",
-                              choices = c("median","mean"),selected="median",inline = TRUE),
+                 uiOutput("com_cd")
                ),
                
-               conditionalPanel(
-                 condition = "input.com==1",
-                 radioButtons("com_way_d",label = "Dispersion",
-                              choices = c("SD","SEM"),selected=character(0),inline = TRUE),
-                 
-               ),
                
                radioButtons(inputId = "select_hemisphere",
                             label = "Choose Hemisphere",
@@ -82,7 +76,9 @@ dashboardPage(
                             selected = "both",inline = TRUE
                ),
                
-               menuItem("Color",expandedName = "col",
+               checkboxInput("col","Color and Value",FALSE),
+               
+               conditionalPanel(condition="input.col==1",
                         colourInput("color_obergrenze", "Please select the color of the upper bound", "red"),
                         numericInput(inputId = 'wert_obergrenze',
                                      label = 'Please choose a value for the upper bound',
@@ -92,18 +88,37 @@ dashboardPage(
                         numericInput(inputId = 'wert_untergrenze',
                                      label = 'Please choose a value for the lower bound',
                                      1.5),
+                        
+                        
+                        
                         actionButton("add_mitte", "Add new values and colors"),
                         hr(),
                         actionButton("remove_mitte","Remove"),
                         hr()
                ),
-               
-              
-               
-               
-               
                checkboxInput("com","composity",value = TRUE),
-               actionButton("ab","Brain Map")
+               checkboxInput("check_download","Download",FALSE),
+               
+               actionButton("ab","Brain Map"),
+               conditionalPanel(
+                 condition = "input.check_download==1",
+                 textInput(inputId = "name",
+                           "file name"
+                 ),
+                 
+                 selectInput(inputId = "format",
+                             "file format",
+                             choices = u_format,
+                             "pdf"
+                 ),
+                 div(style="height:100px;",
+                 checkboxInput("down_filter","With Filer Label",value = FALSE)
+                     
+                     ),
+                 actionButton("download","Download image"),
+                 hr()
+               )
+               
       ),
       menuItem("Statistics"),
       
