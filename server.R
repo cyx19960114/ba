@@ -1,6 +1,7 @@
 # install.packages("remotes")
 # remotes::install_github("LCBC-UiO/ggseg", build_vignettes = TRUE)
 # remotes::install_github("LCBC-UiO/ggseg3d", build_vignettes = TRUE)
+
 library(shiny)
 library(dplyr)
 library(tidyr)
@@ -409,14 +410,17 @@ server<-function(input, output,session) {
   output$statistics <- DT::renderDataTable({
     data <- get_choice()
     data <- data[-1:-3]
-    data_mean <- round(apply(data, 2, mean),2)
+    data_mean <-apply(data, 2, mean)
     
-    data_median <- round(apply(data,2,median),2)
-    data_sd <- round(apply(data, 2, sd),2)
-    data_sem <- round(apply(data, 2, sem),4)
+    data_median <- apply(data, 2, median)
+    data_sd <- apply(data, 2, sd)
+    data_sem <- apply(data, 2, sem)
     
-    frame_statistics <- data.frame("mean"=data_mean,"median"=data_median,
+    frame_statistics <- tibble("thickness"=names(data),"mean"=data_mean,"median"=data_median,
                                    "SD"=data_sd,"SEM"=data_sem)
+    frame_statistics[2:4] <- frame_statistics[2:4]%>%mutate_if(is.numeric,round,2)
+    frame_statistics[5] <- frame_statistics[5]%>%mutate_if(is.numeric,round,4)
+    
     
     DT::datatable(frame_statistics,options = list(scrolly=TRUE))
   })
@@ -431,20 +435,25 @@ server<-function(input, output,session) {
   observeEvent({
     input$com_way_c
     input$com_way_d
+    is.null(input$com_way)
     input$sidebarItemExpanded
+    lapply(get_fil(), function(x){input[[x]]})
+    lapply(get_fil_com(), function(x){input[[paste0(x,"_range")]]})
+    input$select_hemisphere
     
   },{
       
     ausgewaehlte_daten <- get_choice()
     wert<-ausgewaehlte_daten[-1:-3]
-    wert <- apply(wert, 2, aus_daten())
+    wert <- tibble(apply(wert, 2, aus_daten()))
     
-    # wert <- wert%>%mutate_if(is.numeric,round,2)
     if(aus_daten()!="sem"){
-      wert <- round(wert,2)
+      wert <- wert%>%mutate_if(is.numeric,round,2)
     }else{
-      wert <- round(wert,4)      
+      wert <- wert%>%mutate_if(is.numeric,round,4)
     }
+    
+    
     max_wert<-max(wert)
     min_wert<-min(wert)
     updateNumericInput(session,"wert_obergrenze",value = max_wert)
@@ -528,12 +537,12 @@ server<-function(input, output,session) {
     
     auswahl_area <- auswahl_area[-1:-3]
     if (nrow(get_choice())==1) {
-      if(input$single_region==1){ ## when only one region to display
-        auswahl_region <- input$region
-        save<-auswahl_area[[auswahl_region]]
-        auswahl_area[1,]<-0.5
-        auswahl_area[[auswahl_region]]<-save
-      }
+      # if(input$single_region==1){ ## when only one region to display
+      #   auswahl_region <- input$region
+      #   save<-auswahl_area[[auswahl_region]]
+      #   auswahl_area[1,]<-0.5
+      #   auswahl_area[[auswahl_region]]<-save
+      # }
     }else if(input$com==0){
       showModal(modalDialog(title = "INPUT ERROR",
                             "The inputed date should be one line or composite display selected",
@@ -541,8 +550,9 @@ server<-function(input, output,session) {
       return(NULL)
     }
     else{
-      auswahl_area[1,] <- apply(auswahl_area, 2, aus_daten())
-      auswahl_area <- auswahl_area[1,]
+      auswahl_area <- tibble(apply(auswahl_area, 2, aus_daten()))
+      # auswahl_area <- auswahl_area[1,]
+      
     }
     if(aus_daten()!="sem"){
       auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
