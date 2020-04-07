@@ -545,6 +545,7 @@ server<-function(input, output,session) {
       #   auswahl_area[1,]<-0.5
       #   auswahl_area[[auswahl_region]]<-save
       # }
+      
     }else if(input$com==0){
       showModal(modalDialog(title = "INPUT ERROR",
                             "The inputed date should be one line or composite display selected",
@@ -556,9 +557,10 @@ server<-function(input, output,session) {
       # auswahl_area <- auswahl_area[1,]
       # View(auswahl_area)s
     }
+    
     auswahl_data <- tibble(
       area = as.character(names(auswahl_area)),
-      wert = auswahl_area,
+      wert = as.numeric(auswahl_area),
       stringsAsFactors = FALSE
     )
     if(aus_daten()!="sem"){
@@ -587,9 +589,6 @@ server<-function(input, output,session) {
     if(input$ab==0)
       return()
     isolate({
-      # if (input$com==0 & input$ID =="") {
-      #   return()
-      # }
       auswahl_data <- get_auswahl_data()
       if (is.null(auswahl_data)) {
         return()
