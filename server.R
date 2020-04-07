@@ -18,9 +18,9 @@ library(cowplot)
 # source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 source("geom_flat_violin.R")
 # source("title_fun.R")
-file.source=list.files("ggseg3d\\R",pattern="*.R",full.names = TRUE)
+file.source=list.files("ggseg3d/R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
-
+load("desterieux_3d.rda")
 sem <- function(x){
   return(sd(x)/sqrt(length(x)))
 }
@@ -550,22 +550,24 @@ server<-function(input, output,session) {
       return(NULL)
     }
     else{
-      auswahl_area <- tibble(apply(auswahl_area, 2, aus_daten()))
+      auswahl_area <- apply(auswahl_area, 2, aus_daten())
       # auswahl_area <- auswahl_area[1,]
-      
+      # View(auswahl_area)s
     }
-    if(aus_daten()!="sem"){
-      auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,2)
-      
-    }else{
-      auswahl_area <- auswahl_area%>%mutate_if(is.numeric,round,4)
-    }
-    auswahl_area <- t(auswahl_area)
-    auswahl_data <- data.frame(
-      area = as.character(row.names(auswahl_area)),
-      wert = auswahl_area[,1],
+    auswahl_data <- tibble(
+      area = as.character(names(auswahl_area)),
+      wert = auswahl_area,
       stringsAsFactors = FALSE
     )
+    if(aus_daten()!="sem"){
+      auswahl_data <- auswahl_data%>%mutate_if(is.numeric,round,2)
+      
+    }else{
+      auswahl_data <- auswahl_data%>%mutate_if(is.numeric,round,4)
+    }
+    # auswahl_area <- t(auswahl_area)
+    
+    # View(auswahl_data)
     auswahl_data[[" "]] <- paste(get_region_names(),", Wert ist ",auswahl_data$wert)
     
     
