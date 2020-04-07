@@ -30,7 +30,7 @@ sem <- function(x){
 
 server<-function(input, output,session) {
   OASIS <<- read_excel("OASIS.xlsx",col_types = c("text"))
-  OASIS[-1:-2] <<- apply(OASIS[-1:-2],2,as.numeric)
+  OASIS[-1:-2] <<- as.data.frame(lapply(OASIS[-1:-2],as.numeric))
   
   observeEvent(input$data_table,
                if(!is.null(input$data_table)){
