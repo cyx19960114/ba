@@ -133,8 +133,8 @@ server<-function(input, output,session) {
   get_altes <- reactive({
     desterieux_neu<-desterieux_3d
     oa <- get_oasis()
-    t_names <- oa
-    t_name <- names(get_oasis()[-1:-3])
+    cols <- ncol(oa)
+    t_name <- names(oa[(cols-147):cols])
     for (j in 1:6) {
       if (desterieux_neu[[3]][[j]] == "left") {
         for (i in 1:82) {
@@ -227,16 +227,17 @@ server<-function(input, output,session) {
   
   
   ## get the region names after filter
-  get_region_names <- reactive({
-    region_names <- names(get_choice())
-    if(input$select_hemisphere=="left"){
-      region_names <- region_names[-78:-151]
-    }else if(input$select_hemisphere=="right"){
-      region_names <- region_names[-4:-77]
-    }
-    region_names <- region_names[-1:-3]
-    return(region_names)
-  })
+  # get_region_names <- reactive({
+  #   
+  #   region_names <- names(get_choice())
+  #   if(input$select_hemisphere=="left"){
+  #     region_names <- region_names[-78:-151]
+  #   }else if(input$select_hemisphere=="right"){
+  #     region_names <- region_names[-4:-77]
+  #   }
+  #   region_names <- region_names[-1:-3]
+  #   return(region_names)
+  # })
   
   
   #######################################################
@@ -328,7 +329,7 @@ server<-function(input, output,session) {
                         }
                       })
         }else{
-          sliderInput(paste0(ff,"_qc"),paste(ff,"Range"),
+          sliderInput(paste0(ff,"_qc"),paste(ff),
                       min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
                       value = {if(!is.null(input[[paste0(ff,"_qc")]])){
                         input[[paste0(ff,"_qc")]]
@@ -417,7 +418,8 @@ server<-function(input, output,session) {
   
   output$statistics <- DT::renderDataTable({
     data <- get_choice()
-    data <- data[-1:-3]
+    cols <- ncol(data)
+    data <- data[(cols-147):cols]
     data_mean <-apply(data, 2, mean)
     
     data_median <- apply(data, 2, median)
@@ -452,7 +454,8 @@ server<-function(input, output,session) {
   },{
       
     ausgewaehlte_daten <- get_choice()
-    wert<-ausgewaehlte_daten[-1:-3]
+    cols <- ncol(ausgewaehlte_daten)
+    wert<-ausgewaehlte_daten[(cols-147):cols]
     wert <- tibble(apply(wert, 2, aus_daten()))
     
     if(aus_daten()!="sem"){
@@ -535,6 +538,7 @@ server<-function(input, output,session) {
   
   get_auswahl_data <- reactive({
     auswahl_area <- get_choice()
+    cols <- ncol(auswahl_area)
     if(nrow(auswahl_area)==0){
       showModal(modalDialog(title = "INPUT ERROR",
                             "The inputed date is empty",
@@ -543,7 +547,7 @@ server<-function(input, output,session) {
     }
     
     
-    auswahl_area <- auswahl_area[-1:-3]
+    auswahl_area <- auswahl_area[(cols-147):cols]
     if (nrow(get_choice())==1) {
       # if(input$single_region==1){ ## when only one region to display
       #   auswahl_region <- input$region
@@ -578,7 +582,7 @@ server<-function(input, output,session) {
     # auswahl_area <- t(auswahl_area)
     
     # View(auswahl_data)
-    auswahl_data[[" "]] <- paste(get_region_names(),", Wert ist ",auswahl_data$wert)
+    auswahl_data[[" "]] <- paste(auswahl_data$area,", Wert ist ",auswahl_data$wert)
     
     
     return(auswahl_data)
@@ -770,7 +774,8 @@ server<-function(input, output,session) {
     
     isolate({
       data <- get_qc_choice()
-      data <- data[-1:-3]
+      cols <- ncol(data)
+      data <- data[(cols-147):cols]
       
       data <- melt(data)
       names(data) <- c("area","thickness")
