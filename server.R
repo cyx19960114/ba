@@ -286,7 +286,7 @@ server<-function(input, output,session) {
                           }
                         })
           }else{
-            sliderInput(paste0(ff,"_range"),paste(ff,"Range"),
+            sliderInput(paste0(ff,"_range"),paste(ff),
                         min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
                         value = {if(!is.null(input[[paste0(ff,"_range")]])){
                           input[[paste0(ff,"_range")]]
