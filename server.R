@@ -31,14 +31,13 @@ sem <- function(x){
 
 
 server<-function(input, output,session) {
-  OASIS <<- read_excel("OASIS.xlsx",col_types = c("text"))
-  OASIS[-1:-2] <<- as.data.frame(lapply(OASIS[-1:-2],as.numeric))
+  OASIS <<- read_excel("OASIS.xlsx")
   
   observeEvent(input$data_table,
                if(!is.null(input$data_table)){
-                 OASIS <<- read_excel(input$data_table[["datapath"]],col_types = "text")
-                 OASIS[-1:-2] <<- apply(OASIS[-1:-2],2,as.numeric)
-               })
+                 OASIS <<- read_excel(input$data_table[["datapath"]])
+               }
+               )
   
   
   
@@ -56,17 +55,22 @@ server<-function(input, output,session) {
     is.null(input$data_table)
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
-      oasis_r <- OASIS[-1:-3]
-      n <- names(oasis_r)
+      cols <- ncol(OASIS)
       
+      # the to be changed names
+      oasis_r <- OASIS[(cols-147):cols]
+      n <- names(oasis_r)
       nt <- sub("lh","",n)
       nt <- sub("rh","",nt)
       nt <- sub("thickness","",nt)
       nt <- gsub("_","",nt)
       nt <- gsub("-","",nt)
+      
+      
       o_table <- tibble(names(oasis_r),nt,seq(1:length(names(oasis_r))))
       names(o_table) <- c("o_names","pattern","name_seq")
       
+      #the replacement names
       an <- area[[2]]
       an <- gsub("_","",an)
       an <- gsub("-","",an)
@@ -87,7 +91,7 @@ server<-function(input, output,session) {
       
       pattern <- apply(pattern,1,get_name)
       
-      names(OASIS)[-1:-3] <- pattern
+      names(OASIS)[(cols-147):cols] <- pattern
       
       oasis_data <- OASIS
       updateSelectInput(session,"qc_fil",choices = c("sex","age",pattern))
@@ -128,6 +132,8 @@ server<-function(input, output,session) {
   # load desterieux_3d
   get_altes <- reactive({
     desterieux_neu<-desterieux_3d
+    oa <- get_oasis()
+    t_names <- oa
     t_name <- names(get_oasis()[-1:-3])
     for (j in 1:6) {
       if (desterieux_neu[[3]][[j]] == "left") {
