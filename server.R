@@ -31,13 +31,25 @@ sem <- function(x){
 
 
 server<-function(input, output,session) {
-  OASIS <<- read_excel("OASIS.xlsx")
+  OASIS <<- NULL
   
-  observeEvent(input$data_table,
-               if(!is.null(input$data_table)){
-                 OASIS <<- read_excel(input$data_table[["datapath"]])
-               }
-               )
+  
+  
+  get_data_file <- reactive({
+    input$data_table
+    if(!is.null(input$data_table)){
+      OASIS <<- read_excel(input$data_table[["datapath"]])
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
+  })
+  
+  output$dataFileLoad <- reactive({
+    return(get_data_file())
+  })
+  
+  outputOptions(output,'dataFileLoad',suspendWhenHidden=FALSE)
   
   
   
@@ -452,7 +464,8 @@ server<-function(input, output,session) {
     input$select_hemisphere
     
   },{
-      
+    if(is.null(OASIS)){return()}  
+    
     ausgewaehlte_daten <- get_choice()
     cols <- ncol(ausgewaehlte_daten)
     wert<-ausgewaehlte_daten[(cols-147):cols]
