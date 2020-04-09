@@ -42,18 +42,7 @@ dashboardPage(
       menuItem("Descriptive Statistics",expandedName = "ds",icon=icon("brain"),
                conditionalPanel(
                  condition="output.dataFileLoad==true",
-                 # conditionalPanel(
-                 #   condition = "input.com==0",
                  uiOutput("fil_ui"),
-                 #   selectInput("fil",label = "Filter",
-                 #               choices = names(OASIS),multiple = TRUE),
-                 # ),
-                 # conditionalPanel(
-                 #   condition = "input.com==1",
-                 #   selectInput("fil_com",label = "Filter",
-                 #               choices = names(OASIS)[-1],multiple = TRUE),
-                 # ),
-                 
                  uiOutput("ds_kon"),
                  
                  conditionalPanel(
@@ -112,7 +101,15 @@ dashboardPage(
                  )
                )
       ),
-      menuItem("Statistics"),
+      menuItem("Statistics",
+               conditionalPanel(
+                 condition="output.dataFileLoad==true",
+                 uiOutput("fil_ss"),
+                 uiOutput("ss_kon"),
+                 actionButton("rp","Regression Plots")
+               )
+               
+               ),
       
       tags$button("Restart", 
                   id="restart", 
@@ -141,10 +138,18 @@ dashboardPage(
       tabsetPanel(
         type="tabs",id="ds_tab",
         tabPanel("Table",DT::dataTableOutput("ds_table")),
-        tabPanel("Statistics",DT::dataTableOutput("statistics")),
+        tabPanel("Statistics",DT::dataTableOutput("ds_composity")),
         tabPanel("3D",plotlyOutput("ggseg3d",height = "700px"))
       ),
-      
+    ),
+    
+    conditionalPanel(
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='Statistics'",
+      tabsetPanel(
+        type="tabs",id="ss_tab",
+        tabPanel("Table",DT::dataTableOutput("ss_table")),
+        tabPanel("Regression Plots",plotOutput("regression",height = "7500px",width = "1300px"))
+      ),
     )
   )
 )

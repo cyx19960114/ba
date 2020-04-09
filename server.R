@@ -15,6 +15,8 @@ library(scales)
 library(processx)
 library(reshape2)
 library(cowplot)
+library(ggpubr)
+
 # source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 source("geom_flat_violin.R")
 # source("title_fun.R")
@@ -135,12 +137,15 @@ server<-function(input, output,session) {
     input$qc_fil
   })
   
+  get_ss_fil <- reactive({
+    input$ss_fil
+  })
+  
   
   
   #######################################################
   ######make the names pass to left and right brain######
   #######################################################
-  # if(is.null(desterieux_neu)){ }
   # load desterieux_3d
   get_altes <- reactive({
     desterieux_neu<-desterieux_3d
@@ -168,6 +173,11 @@ server<-function(input, output,session) {
     return(desterieux_neu)
   })
   
+  
+  #######################################################
+  ##############output the select choices################
+  #######################################################
+  
   output$fil_ui <- renderUI({
     if(input$com==0){
       tagList(
@@ -185,6 +195,13 @@ server<-function(input, output,session) {
   output$fil_qc <- renderUI({
     tagList(
       selectInput("qc_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+    )
+  })
+  
+  output$fil_ss <- renderUI({
+    tagList(
+      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+     
     )
   })
   
@@ -249,6 +266,24 @@ server<-function(input, output,session) {
     return(u_oasis)
   })
   
+  get_ss_choice <- reactive({    # get the select col and return the selected date
+    col_input <- get_ss_fil()
+    u_oasis <- get_oasis()
+    for (col in col_input) {
+      if(as.character(col)=='sex'){
+        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
+          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
+        }
+      }else if(!is.null(input[[paste0(col,"_qc")]])){
+        v_min <- min(input[[paste0(col,"_qc")]])
+        v_max <- max(input[[paste0(col,"_qc")]])
+        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
+      
+    }
+    
+    return(u_oasis)
+  })
   
   
   
@@ -257,19 +292,7 @@ server<-function(input, output,session) {
   
   
   
-  
-  ## get the region names after filter
-  # get_region_names <- reactive({
-  #   
-  #   region_names <- names(get_choice())
-  #   if(input$select_hemisphere=="left"){
-  #     region_names <- region_names[-78:-151]
-  #   }else if(input$select_hemisphere=="right"){
-  #     region_names <- region_names[-4:-77]
-  #   }
-  #   region_names <- region_names[-1:-3]
-  #   return(region_names)
-  # })
+
   
   
   #######################################################
@@ -373,7 +396,41 @@ server<-function(input, output,session) {
         }
       ))
     }
-    
+    return(x)
+  })
+  
+  
+  
+  
+
+  output$ss_kon <- renderUI({
+    x <- NULL
+    for (ff in get_ss_fil()) {
+      x <- append(x,list(
+        if(as.character(ff)=="sex"){
+          selectInput("sex_qc",
+                      label = "sex",
+                      choices = unique(append("All",c("F","M"))),
+                      selected = {
+                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
+                          "All"
+                        } else{
+                          input[["sex_qc"]]
+                        }
+                      })
+        }else{
+          sliderInput(paste0(ff,"_qc"),paste(ff),
+                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
+                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
+                        input[[paste0(ff,"_qc")]]
+                      }else{
+                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
+                      }
+                      }
+          )
+        }
+      ))
+    }
     return(x)
   })
   
@@ -383,7 +440,7 @@ server<-function(input, output,session) {
   ## get the composite way 
 
   
-  com_cd <- "mean"
+
   
   output$com_cd <- renderUI({
     tagList(
@@ -417,6 +474,7 @@ server<-function(input, output,session) {
   
   
   
+  com_cd <<-"mean"
   aus_daten <- reactive({
     input$com_way_c
     input$com_way_d
@@ -438,17 +496,18 @@ server<-function(input, output,session) {
   #######################################################
   ##################output OASIS table###################
   #######################################################
-  output$ds_table<- DT::renderDataTable({
-    ausgewaehlte_daten <- get_choice()
-    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
-  })
-  
   output$qc_table<- DT::renderDataTable({
     ausgewaehlte_daten <- get_qc_choice()
     DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
   })
   
-  output$statistics <- DT::renderDataTable({
+  output$ds_table<- DT::renderDataTable({
+    ausgewaehlte_daten <- get_choice()
+    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
+  })
+
+  
+  output$ds_composity <- DT::renderDataTable({
     data <- get_choice()
     cols <- ncol(data)
     data <- data[(cols-147):cols]
@@ -468,6 +527,10 @@ server<-function(input, output,session) {
   })
   
   
+  output$ss_table<- DT::renderDataTable({
+    ausgewaehlte_daten <- get_ss_choice()
+    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
+  })
   
   
   
@@ -517,12 +580,8 @@ server<-function(input, output,session) {
       hideTab(inputId ="tab",target = "DistributionPlot")
       
     }
-    
-    
     if(input$single_region==1){
       showTab(inputId ="tab",target = "DistributionPlot")
-      
-      
     }
   })
   
@@ -582,12 +641,6 @@ server<-function(input, output,session) {
     
     auswahl_area <- auswahl_area[(cols-147):cols]
     if (nrow(get_choice())==1) {
-      # if(input$single_region==1){ ## when only one region to display
-      #   auswahl_region <- input$region
-      #   save<-auswahl_area[[auswahl_region]]
-      #   auswahl_area[1,]<-0.5
-      #   auswahl_area[[auswahl_region]]<-save
-      # }
       
     }else if(input$com==0){
       showModal(modalDialog(title = "INPUT ERROR",
@@ -809,17 +862,21 @@ server<-function(input, output,session) {
       data <- get_qc_choice()
       cols <- ncol(data)
       data <- data[(cols-147):cols]
-      
+      name_level <- names(data)
       data <- melt(data)
       names(data) <- c("area","thickness")
       data$lr <- substr(data$area,1,1)
       data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
       data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
       data$lr <- as.factor(data$lr)
+      
+      ##format the thickness area names the rearrange the factor levels
       if(!is.null(input$name_file)){
-        data$area <- ordered(substring(data$area,2),rev(unique(substring(data$area,2))))
+        name_level <- rev(unique(substring(name_level,2)))
+        data$area <- factor(x=substring(data$area,2),levels=name_level,ordered = TRUE)
       }else{
-        data$area <- ordered(substring(data$area,4),rev(unique(substring(data$area,4))))
+        name_level <- rev(unique(substring(name_level,4)))
+        data$area <- factor(x=substring(data$area,4),levels=name_level,ordered = TRUE)
       }
       
       p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
@@ -832,11 +889,27 @@ server<-function(input, output,session) {
         guides(fill=FALSE)
       p
     })
-    
-    
-    
   })
   
+  
+  output$regression <- renderPlot({
+    if(is.null(input$rp) || input$rp==0){return(NULL)}
+    
+    isolate({
+      data <- get_ss_choice()
+      cols <- ncol(data)
+      
+      data_thickness <- data[(cols-147):cols]
+      data_thickness <- melt(data_thickness)
+      names(data_thickness) <- c("area","thickness")
+      data_thickness$lr <- substr(data_thickness$area,1,1)
+      data_thickness[which(data_thickness$lr=='l'|data_thickness$lr=="L"),]$lr <- "left"
+      data_thickness[which(data_thickness$lr=='r'|data_thickness$lr=="R"),]$lr <- "right"
+      data_thickness$lr <- as.factor(data_thickness$lr)
+      
+      
+    })
+  })
   
   
   
