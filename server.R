@@ -168,6 +168,26 @@ server<-function(input, output,session) {
     return(desterieux_neu)
   })
   
+  output$fil_ui <- renderUI({
+    if(input$com==0){
+      tagList(
+        selectInput("fil",label = "Filter",
+                    choices = names(OASIS),multiple = TRUE)
+      )
+    }else{
+      tagList(
+        selectInput("fil_com",label = "Filter",
+                    choices = names(OASIS)[-1],multiple = TRUE)
+      )
+    }
+  })
+  
+  output$fil_qc <- renderUI({
+    tagList(
+      selectInput("qc_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+    )
+  })
+  
   
   
   

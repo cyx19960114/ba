@@ -9,20 +9,6 @@ library(plotly)
 library(colourpicker)
 library(processx)
 library(shinydashboard)
-## read OASIS
-OASIS <- read_excel("OASIS.xlsx",col_types = c("text"))
-id_sex_age <- OASIS[,1:3]
-u_age <- sort(as.numeric(unique(id_sex_age$age)))
-u_IDs <- id_sex_age$ID
-u_sex <- c("F","M")
-u_region<-c(paste("L_Region",1:74), paste("R_Region",1:74))
-u_hemisphere<-c("left","right")
-u_format<-c("svg","pdf","png")
-modify_stop_propagation <- function(x) {
-  x$children[[1]]$attribs$onclick = "event.stopPropagation()"
-  x
-}
-
 
 
 dashboardPage(
@@ -45,7 +31,7 @@ dashboardPage(
       menuItem("Quality Control",tabName = "qc",icon=icon("chart-bar"),expandedName = "qc",
                conditionalPanel(
                  condition="output.dataFileLoad==true",
-                 selectInput("qc_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE),
+                 uiOutput("fil_qc"),
                  uiOutput("qc_kon"),
                  actionButton("dp","Distribution Plot")
                )
@@ -56,16 +42,17 @@ dashboardPage(
       menuItem("Descriptive Statistics",expandedName = "ds",icon=icon("brain"),
                conditionalPanel(
                  condition="output.dataFileLoad==true",
-                 conditionalPanel(
-                   condition = "input.com==0",
-                   selectInput("fil",label = "Filter",
-                               choices = names(OASIS),multiple = TRUE),
-                 ),
-                 conditionalPanel(
-                   condition = "input.com==1",
-                   selectInput("fil_com",label = "Filter",
-                               choices = names(OASIS)[-1],multiple = TRUE),
-                 ),
+                 # conditionalPanel(
+                 #   condition = "input.com==0",
+                 uiOutput("fil_ui"),
+                 #   selectInput("fil",label = "Filter",
+                 #               choices = names(OASIS),multiple = TRUE),
+                 # ),
+                 # conditionalPanel(
+                 #   condition = "input.com==1",
+                 #   selectInput("fil_com",label = "Filter",
+                 #               choices = names(OASIS)[-1],multiple = TRUE),
+                 # ),
                  
                  uiOutput("ds_kon"),
                  
@@ -77,7 +64,7 @@ dashboardPage(
                  
                  radioButtons(inputId = "select_hemisphere",
                               label = "Choose Hemisphere",
-                              choices = c(u_hemisphere,"both"),
+                              choices = c("left","right","both"),
                               selected = "both",inline = TRUE
                  ),
                  
@@ -113,7 +100,7 @@ dashboardPage(
                    
                    selectInput(inputId = "format",
                                "file format",
-                               choices = u_format,
+                               choices = c("svg","pdf","png"),
                                "pdf"
                    ),
                    div(style="height:100px;",
@@ -139,7 +126,7 @@ dashboardPage(
   
   dashboardBody(
     conditionalPanel(
-      condition="input.sidebarItemExpanded=='qc'",
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='qc'",
       tabsetPanel(type="tabs",id="qc_tab",
                   tabPanel("Table",DT::dataTableOutput("qc_table")),
                   tabPanel("Quality Raincloud",plotOutput("quality",height = "7500px",width = "1300px"))
@@ -150,7 +137,7 @@ dashboardPage(
     
     
     conditionalPanel(
-      condition="input.sidebarItemExpanded=='ds'",
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ds'",
       tabsetPanel(
         type="tabs",id="ds_tab",
         tabPanel("Table",DT::dataTableOutput("ds_table")),
