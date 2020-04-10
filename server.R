@@ -43,7 +43,8 @@ server<-function(input, output,session) {
       OASIS <<- read_excel(input$data_table[["datapath"]])
       return(TRUE)
     }else{
-      return(FALSE)
+      OASIS <<- read_excel("OASIS_behavioral.xlsx")
+      return(TRUE)
     }
   })
   
@@ -200,8 +201,8 @@ server<-function(input, output,session) {
   
   output$fil_ss <- renderUI({
     tagList(
-      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
-     
+      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE),
+      selectInput("explan",label="Explanatory variable",choices = names(OASIS)[-1])
     )
   })
   
@@ -893,22 +894,36 @@ server<-function(input, output,session) {
   
   
   output$regression <- renderPlot({
-    if(is.null(input$rp) || input$rp==0){return(NULL)}
     
-    isolate({
+    # if(is.null(input$rp) || input$rp==0 ||is.null(input$explan)){return(NULL)}
+    # 
+    # isolate({
       data <- get_ss_choice()
       cols <- ncol(data)
-      
-      data_thickness <- data[(cols-147):cols]
-      data_thickness <- melt(data_thickness)
-      names(data_thickness) <- c("area","thickness")
-      data_thickness$lr <- substr(data_thickness$area,1,1)
+      var_explan <- as.character(input$explan)
+      data_thickness <- dplyr::select(data,(cols-147):cols)
+      data_thickness <- tibble(var_explan=data[[var_explan]],data_thickness)
+      data_thickness <- melt(data_thickness,"var_explan")
+      names(data_thickness) <- c(as.character(var_explan),"thickness","value")
+
+      data_thickness$lr <- substr(data_thickness$thickness,1,1)
       data_thickness[which(data_thickness$lr=='l'|data_thickness$lr=="L"),]$lr <- "left"
       data_thickness[which(data_thickness$lr=='r'|data_thickness$lr=="R"),]$lr <- "right"
       data_thickness$lr <- as.factor(data_thickness$lr)
+      data_thickness$thickness <- substring(data_thickness$thickness,4)
+      data_thickness$thickness <- as.factor(data_thickness$thickness)
+      p <- ggplot(data_thickness, aes_string(x=var_explan, y="value")) +
+        geom_point() +
+        facet_grid(thickness~lr,scales = "free")+
+        stat_smooth(method=lm, level=0.95) +
+        theme_minimal()
+
+      p
       
       
-    })
+      
+      
+    # })
   })
   
   

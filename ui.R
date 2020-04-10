@@ -148,7 +148,7 @@ dashboardPage(
       tabsetPanel(
         type="tabs",id="ss_tab",
         tabPanel("Table",DT::dataTableOutput("ss_table")),
-        tabPanel("Regression Plots",plotOutput("regression",height = "7500px",width = "1300px"))
+        tabPanel("Regression Plots",plotOutput("regression",height ="40000px",width = "1000px"))
       ),
     )
   )
