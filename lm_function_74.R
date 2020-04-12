@@ -2,7 +2,7 @@ library(tidyverse)
 library(readxl)
 library(reshape2)
 library(Rmisc)
-data <- read_excel("OASIS_behavioral.xlsx")
+# data <- read_excel("OASIS_behavioral.xlsx")
 
 add_lm_trace <- function(data,var_explan="reaction_time"){
   cols <- ncol(data)
@@ -10,7 +10,7 @@ add_lm_trace <- function(data,var_explan="reaction_time"){
   p <- list()
   for(i in seq(1:74)){
     data_thickness <- dplyr::select(data,(cols-148+i),(cols-74+i))
-    data_thickness <- tibble(explan=data[[explan]],data_thickness)
+    data_thickness <- bind_cols(explan=data[[explan]],data_thickness)
     data_thickness <- melt(data_thickness,"explan")
     names(data_thickness) <- c(as.character(explan),"thickness","value")
     

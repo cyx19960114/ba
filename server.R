@@ -44,8 +44,8 @@ server<-function(input, output,session) {
       OASIS <<- read_excel(input$data_table[["datapath"]])
       return(TRUE)
     }else{
-      OASIS <<- read_excel("OASIS_behavioral.xlsx")
-      return(TRUE)
+      # OASIS <<- read_excel("OASIS_behavioral.xlsx")
+      return(FALSE)
     }
   })
   
