@@ -19,6 +19,7 @@ library(ggpubr)
 
 # source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 source("geom_flat_violin.R")
+source("lm_function_74.R")
 # source("title_fun.R")
 file.source_linux=list.files("ggseg3d/R",pattern="*.R",full.names = TRUE)
 file.source_windows=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
@@ -199,12 +200,27 @@ server<-function(input, output,session) {
     )
   })
   
+  
+  
+  
+  ## get the explan names
+  get_explan_names <- reactive({
+    cols <- ncol(OASIS)
+    explans <- dplyr::select(OASIS,-(cols-147):-cols)
+    names_explan <- names(explans)
+    to_dellte_name <- which(names_explan==c("ID","sex"))
+    names_explan <- names_explan[-to_dellte_name]
+    
+    return(names_explan)
+  })  
+  
   output$fil_ss <- renderUI({
     tagList(
       selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE),
-      selectInput("explan",label="Explanatory variable",choices = names(OASIS)[-1])
+      selectInput("explan",label="Explanatory variable",choices = get_explan_names())
     )
   })
+  
   
   
   
@@ -403,7 +419,7 @@ server<-function(input, output,session) {
   
   
   
-
+  ## Stastics
   output$ss_kon <- renderUI({
     x <- NULL
     for (ff in get_ss_fil()) {
@@ -439,10 +455,6 @@ server<-function(input, output,session) {
   
   
   ## get the composite way 
-
-  
-
-  
   output$com_cd <- renderUI({
     tagList(
       radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE),
@@ -853,6 +865,10 @@ server<-function(input, output,session) {
     updateTabsetPanel(session,"qc_tab","Quality Raincloud")
   })
   
+  observeEvent(input$rp,{
+    updateTabsetPanel(session,"ss_tab","Regression Plots")
+  })
+  
   
   
   
@@ -894,36 +910,11 @@ server<-function(input, output,session) {
   
   
   output$regression <- renderPlot({
-    
-    # if(is.null(input$rp) || input$rp==0 ||is.null(input$explan)){return(NULL)}
-    # 
-    # isolate({
       data <- get_ss_choice()
       cols <- ncol(data)
       var_explan <- as.character(input$explan)
-      data_thickness <- dplyr::select(data,(cols-147):cols)
-      data_thickness <- tibble(var_explan=data[[var_explan]],data_thickness)
-      data_thickness <- melt(data_thickness,"var_explan")
-      names(data_thickness) <- c(as.character(var_explan),"thickness","value")
-
-      data_thickness$lr <- substr(data_thickness$thickness,1,1)
-      data_thickness[which(data_thickness$lr=='l'|data_thickness$lr=="L"),]$lr <- "left"
-      data_thickness[which(data_thickness$lr=='r'|data_thickness$lr=="R"),]$lr <- "right"
-      data_thickness$lr <- as.factor(data_thickness$lr)
-      data_thickness$thickness <- substring(data_thickness$thickness,4)
-      data_thickness$thickness <- as.factor(data_thickness$thickness)
-      p <- ggplot(data_thickness, aes_string(x=var_explan, y="value")) +
-        geom_point() +
-        facet_grid(thickness~lr,scales = "free")+
-        stat_smooth(method=lm, level=0.95) +
-        theme_minimal()
-
-      p
+      p <- add_lm_trace(data,var_explan)
       
-      
-      
-      
-    # })
   })
   
   

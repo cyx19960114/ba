@@ -8,6 +8,8 @@ library(readxl)
 library(plotly)
 library(colourpicker)
 library(processx)
+library(Rmisc)
+library(plyr)
 library(shinydashboard)
 
 
@@ -101,7 +103,7 @@ dashboardPage(
                  )
                )
       ),
-      menuItem("Statistics",
+      menuItem("Statistics",expandedName = "ss",icon=icon("chart-pie"),
                conditionalPanel(
                  condition="output.dataFileLoad==true",
                  uiOutput("fil_ss"),
@@ -144,7 +146,7 @@ dashboardPage(
     ),
     
     conditionalPanel(
-      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='Statistics'",
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ss'",
       tabsetPanel(
         type="tabs",id="ss_tab",
         tabPanel("Table",DT::dataTableOutput("ss_table")),
