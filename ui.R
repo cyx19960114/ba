@@ -103,7 +103,7 @@ dashboardPage(
                  )
                )
       ),
-      menuItem("Statistics",expandedName = "ss",icon=icon("chart-pie"),
+      menuItem("Linear Regression",expandedName = "ss",icon=icon("chart-line"),
                conditionalPanel(
                  condition="output.dataFileLoad==true",
                  uiOutput("fil_ss"),

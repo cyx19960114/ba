@@ -21,10 +21,8 @@ library(ggpubr)
 source("geom_flat_violin.R")
 source("lm_function_74.R")
 # source("title_fun.R")
-file.source_linux=list.files("ggseg3d/R",pattern="*.R",full.names = TRUE)
-file.source_windows=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
-lapply(file.source_linux, source,.GlobalEnv)
-lapply(file.source_windows, source,.GlobalEnv)
+file.source=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
+lapply(file.source, source,.GlobalEnv)
 load("desterieux_3d.rda")
 sem <- function(x){
   return(sd(x)/sqrt(length(x)))
@@ -46,6 +44,8 @@ server<-function(input, output,session) {
     }else{
       # OASIS <<- read_excel("OASIS_behavioral.xlsx")
       return(FALSE)
+      # return(TRUE)
+      
     }
   })
   
@@ -216,8 +216,7 @@ server<-function(input, output,session) {
   
   output$fil_ss <- renderUI({
     tagList(
-      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE),
-      selectInput("explan",label="Explanatory variable",choices = get_explan_names())
+      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
     )
   })
   
@@ -349,7 +348,6 @@ server<-function(input, output,session) {
             )}
         ))}
     }else{
-      # x <- append(x,list(actionButton("dp","Distribution Plots")))
       for (ff in get_fil_com()) {
         x <- append(x,list(
           if(as.character(ff)=="ID"){}
@@ -448,6 +446,8 @@ server<-function(input, output,session) {
         }
       ))
     }
+    
+    x <- append(x,list(selectInput("explan",label="Explanatory variable",choices = get_explan_names())))
     return(x)
   })
   
@@ -697,7 +697,7 @@ server<-function(input, output,session) {
     input$ab  
     if(input$ab==0)
       return()
-    isolate({
+    # isolate({
       auswahl_data <- get_auswahl_data()
       if (is.null(auswahl_data)) {
         return()
@@ -773,7 +773,7 @@ server<-function(input, output,session) {
         
       }
       
-    })
+    # })
   })
   
   
