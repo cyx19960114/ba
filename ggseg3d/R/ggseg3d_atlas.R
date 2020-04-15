@@ -48,7 +48,7 @@ as_ggseg3d_atlas <- function(x) {
     select(one_of(c(necessaries, "label")),
            everything()) %>%
     nest() %>%
-    rename(ggseg_3d = data)
+    dplyr::rename(ggseg_3d = data)
 
   class(x) <- c("ggseg_atlas", "tbl_df", "tbl", "data.frame")
   return(x)
