@@ -113,6 +113,16 @@ dashboardPage(
                
                ),
       
+      menuItem("Lasso Regression",expandedName = "ls",icon=icon("chart-line"),
+               conditionalPanel(
+                 condition="output.dataFileLoad==true",
+                 uiOutput("fil_ls"),
+                 uiOutput("ls_kon"),
+                 actionButton("lp","lasso")
+               )
+               
+      ),
+      
       tags$button("Restart", 
                   id="restart", 
                   type="button", class="btn btn-danger action-button", onclick="history.go(0)"),
@@ -151,6 +161,14 @@ dashboardPage(
         type="tabs",id="ss_tab",
         tabPanel("Table",DT::dataTableOutput("ss_table")),
         tabPanel("Regression Plots",plotOutput("regression",height ="40000px",width = "1000px"))
+      ),
+    ),
+    
+    conditionalPanel(
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ls'",
+      tabsetPanel(
+        type="tabs",id="ls_tab",
+        tabPanel("Table",DT::dataTableOutput("ls_table"))
       ),
     )
   )

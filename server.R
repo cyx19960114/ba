@@ -143,6 +143,10 @@ server<-function(input, output,session) {
     input$ss_fil
   })
   
+  get_ls_fil <- reactive({
+    input$ls_fil
+  })
+  
   
   
   #######################################################
@@ -220,6 +224,12 @@ server<-function(input, output,session) {
     )
   })
   
+  output$fil_ls <- renderUI({
+    tagList(
+      selectInput("ls_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+    )
+  })
+  
   
   
   
@@ -284,6 +294,25 @@ server<-function(input, output,session) {
   
   get_ss_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_ss_fil()
+    u_oasis <- get_oasis()
+    for (col in col_input) {
+      if(as.character(col)=='sex'){
+        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
+          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
+        }
+      }else if(!is.null(input[[paste0(col,"_qc")]])){
+        v_min <- min(input[[paste0(col,"_qc")]])
+        v_max <- max(input[[paste0(col,"_qc")]])
+        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
+        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
+      
+    }
+    
+    return(u_oasis)
+  })
+  
+  get_ls_choice <- reactive({    # get the select col and return the selected date
+    col_input <- get_ls_fil()
     u_oasis <- get_oasis()
     for (col in col_input) {
       if(as.character(col)=='sex'){
@@ -451,7 +480,38 @@ server<-function(input, output,session) {
     return(x)
   })
   
-  
+  output$ls_kon <- renderUI({
+    x <- NULL
+    for (ff in get_ls_fil()) {
+      x <- append(x,list(
+        if(as.character(ff)=="sex"){
+          selectInput("sex_qc",
+                      label = "sex",
+                      choices = unique(append("All",c("F","M"))),
+                      selected = {
+                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
+                          "All"
+                        } else{
+                          input[["sex_qc"]]
+                        }
+                      })
+        }else{
+          sliderInput(paste0(ff,"_qc"),paste(ff),
+                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
+                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
+                        input[[paste0(ff,"_qc")]]
+                      }else{
+                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
+                      }
+                      }
+          )
+        }
+      ))
+    }
+    
+    x <- append(x,list(selectInput("explan",label="Explanatory variable",choices = get_explan_names())))
+    return(x)
+  })
   
   
   ## get the composite way 
@@ -542,6 +602,11 @@ server<-function(input, output,session) {
   
   output$ss_table<- DT::renderDataTable({
     ausgewaehlte_daten <- get_ss_choice()
+    DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
+  })
+  
+  output$ls_table<- DT::renderDataTable({
+    ausgewaehlte_daten <- get_ls_choice()
     DT::datatable(ausgewaehlte_daten,class = "display nowrap",options = list(scrollX=TRUE))
   })
   
