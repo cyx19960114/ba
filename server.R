@@ -512,7 +512,7 @@ server<-function(input, output,session) {
       ))
     }
     
-    x <- append(x,list(selectInput("explan",label="Explanatory variable",choices = get_explan_names())))
+    x <- append(x,list(selectInput("lasso_variable",label="Explanatory variable",choices = get_explan_names())))
     return(x)
   })
   
@@ -936,6 +936,9 @@ server<-function(input, output,session) {
   observeEvent(input$rp,{
     updateTabsetPanel(session,"ss_tab","Regression Plots")
   })
+  observeEvent(input$lp,{
+    updateTabsetPanel(session,"lp_tab","Regression Plots")
+  })
   
   
   
@@ -985,6 +988,8 @@ server<-function(input, output,session) {
       
   })
   
+  
+####lass#####  
   
   lasso_training_results <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T){
     taco <- target.column
@@ -1036,8 +1041,28 @@ server<-function(input, output,session) {
     return(apply(coefficient.matrix,2,sign.consistency))
   }
   
-  
-  
+
+  observeEvent(input$lasso_variable, { 
+    dat<-get_ls_choice()
+    # view(dat)
+    count_lasso<-which(names(dat)== input$lasso_variable)
+    # print(count_lasso)
+    if(count_lasso==8){
+      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
+    }else{
+      # view(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))])
+      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))],input$lasso_variable)
+    }
+    
+    prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
+    consistent.sign.all <- get.sign.consistency(lasso.b.all[,-1])
+    bs.data <<- data.frame(prop.nonzero.all,consistent.sign.all)
+    rownames(bs.data) <- colnames(lasso.b.all)[-1]
+    
+    output$lasso_table<- DT::renderDataTable({
+      DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE))
+    })
+  })
   
   
 }
