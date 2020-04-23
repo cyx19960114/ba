@@ -1042,9 +1042,11 @@ server<-function(input, output,session) {
   }
   
 
-  observeEvent(input$lasso_variable, { 
+  observeEvent(input$lp, { 
     dat<-get_ls_choice()
-    # view(dat)
+    # datex <- loadWorkbook("C:/Users/cyx19/Desktop/ba/ba/OASIS_behavioral.xlsx")
+    # dat <- readWorksheet(datex,1)
+     view(dat)
     count_lasso<-which(names(dat)== input$lasso_variable)
     # print(count_lasso)
     if(count_lasso==8){
