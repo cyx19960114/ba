@@ -121,7 +121,7 @@ dashboardPage(
                  condition="output.dataFileLoad==true",
                  uiOutput("fil_ls"),
                  uiOutput("ls_kon"),
-                 actionButton("lp","lasso")
+                 actionButton("lp","TableLasso generation")
                )
                
       ),

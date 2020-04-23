@@ -937,7 +937,7 @@ server<-function(input, output,session) {
     updateTabsetPanel(session,"ss_tab","Regression Plots")
   })
   observeEvent(input$lp,{
-    updateTabsetPanel(session,"lp_tab","Regression Plots")
+    updateTabsetPanel(session,"ls_tab","Lasso tabel")
   })
   
   
@@ -1044,25 +1044,20 @@ server<-function(input, output,session) {
 
   observeEvent(input$lp, { 
     dat<-get_ls_choice()
-    # datex <- loadWorkbook("OASIS_behavioral.xlsx")
-    # dat <- readWorksheet(datex,1)
-    # view(dat)
     count_lasso<-which(names(dat)== input$lasso_variable)
-    # print(count_lasso)
     if(count_lasso==8){
       lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
     }else{
-      # view(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))])
-      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))],input$lasso_variable)
+      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),((count_lasso+1):8))],input$lasso_variable)
     }
     
     prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
     consistent.sign.all <- get.sign.consistency(lasso.b.all[,-1])
     bs.data <<- data.frame(prop.nonzero.all,consistent.sign.all)
     rownames(bs.data) <- colnames(lasso.b.all)[-1]
-    
+    label_ExplantoryVariable<-input$lasso_variable
     output$lasso_table<- DT::renderDataTable({
-      DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE))
+      DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE),caption = paste("Explantory variable:", label_ExplantoryVariable))
     })
   })
   
