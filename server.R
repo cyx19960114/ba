@@ -1012,7 +1012,7 @@ server<-function(input, output,session) {
     }
     return(list(lambda=best_lam,coefficients=coef(lasso_best)[,1],predictions=predictions))
   }
-  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
+  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=10){
     
     lambda <- rep(0,n.bootstrap)
     coefficient.matrix <- matrix(0,nrow=n.bootstrap,ncol=ncol(dat)+1)
@@ -1038,23 +1038,24 @@ server<-function(input, output,session) {
   }
   
   
-  output$ls_table<- DT::renderDataTable({
+
+    observeEvent(input$lasso_variable,{ 
     ausgewaehlte_daten <- get_ls_choice()
-    observeEvent({input$lasso_variable},{
     count_lasso<-which(names(ausgewaehlte_daten)== input$lasso_variable)
     
     if(count_lasso==8){
-      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
+      lasso.b.all <- lasso_bootstrap(ausgewaehlte_daten[,-c(1:(count_lasso-1))],input$lasso_variable)
     } 
     else{
-      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1):8)],input$lasso_variable)
+      lasso.b.all <- lasso_bootstrap(ausgewaehlte_daten[,-c(1:(count_lasso-1),(count_lasso+1):8)],input$lasso_variable)
     }
     prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
     bs.data <- data.frame(prop.nonzero.all,consistent.sign.all)
     rownames(bs.data) <- colnames(lasso.b.all)[-1]
-   
-  })
+    output$ls_table<- DT::renderDataTable({
     DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE))
   })
+  })  
+    
   
 }
