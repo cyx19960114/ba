@@ -1016,16 +1016,18 @@ server<-function(input, output,session) {
     }
     return(list(lambda=best_lam,coefficients=coef(lasso_best)[,1],predictions=predictions))
   }
-  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=10){
+  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
     
     lambda <- rep(0,n.bootstrap)
     coefficient.matrix <- matrix(0,nrow=n.bootstrap,ncol=ncol(dat)+1)
     colnames(coefficient.matrix) <- c("lambda","intercept",colnames(dat)[!names(dat) %in% target.column,drop=F])
+    withProgress(message = 'Calculation in progress',detail = 'Wait a moment',value = 0,expr = {
     for (i in 1:n.bootstrap){
       inds <- sample(nrow(dat),nrow(dat),replace=T)
       lassi <- lasso_training_results(dat[inds,],target.column,lambda_seq=lambda_seq,alpha=alpha,normalise=normalise)
       coefficient.matrix[i,] <- c(lassi$lambda,lassi$coefficients)
-    }
+      incProgress(1/n.bootstrap)
+    }})
     return(coefficient.matrix)
   }
   prop.nonzero <- function(x){
