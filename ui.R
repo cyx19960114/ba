@@ -168,7 +168,8 @@ dashboardPage(
       condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ls'",
       tabsetPanel(
         type="tabs",id="ls_tab",
-        tabPanel("Table",DT::dataTableOutput("ls_table"))
+        tabPanel("Table",DT::dataTableOutput("ls_table")),
+        tabPanel("Lasso tabel",DT::dataTableOutput("lasso_table"))
       ),
     )
   )
