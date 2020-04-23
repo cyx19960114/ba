@@ -6,26 +6,25 @@ library(gplots)
 
 datex <- loadWorkbook("C:/Users/cyx19/Desktop/ba/ba/OASIS_behavioral.xlsx")
 dat <- readWorksheet(datex,1)
+sss <- c("age","reaction_time","accuracy","IQ","depression","anxiety")
 
-# Define UI for random distribution app ----
 ui <- fluidPage(
   
   
   pageWithSidebar(
-    headerPanel(''),
+    headerPanel('sssssss'),
     sidebarPanel(
-      selectInput("lasso_variable","Explanatory variable", c("age","reaction_time","accuracy","IQ","depression","anxiety"))
-     
+      selectInput("lasso_variable","Explanatory variable", sss)
+      
     ),
     mainPanel( tabsetPanel(
       tabPanel("Table",DT::dataTableOutput("table"))
     )
-     
+    
     )
   )
 )
 
-# Define server logic for random distribution app ----
 server <- function(input, output) {
 
   lasso_training_results <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T){
@@ -53,7 +52,7 @@ server <- function(input, output) {
     }
     return(list(lambda=best_lam,coefficients=coef(lasso_best)[,1],predictions=predictions))
   }
-  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
+  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=10){
     
     lambda <- rep(0,n.bootstrap)
     coefficient.matrix <- matrix(0,nrow=n.bootstrap,ncol=ncol(dat)+1)
@@ -65,37 +64,37 @@ server <- function(input, output) {
     }
     return(coefficient.matrix)
   }
+  prop.nonzero <- function(x){
+    return(sum(!is.na(x) & x!=0)/sum(!is.na(x)))
+  }
   get.proportion.of.nonzero.coeffcients <- function(coefficient.matrix){
     return(apply(coefficient.matrix,2,prop.nonzero))
   }
   sign.consistency <- function(x){
     return(sum(!is.na(x) & x>=0)==sum(!is.na(x)) | sum(!is.na(x) & x<=0)==sum(!is.na(x)))
   }
-  prop.nonzero <- function(x){
-    return(sum(!is.na(x) & x!=0)/sum(!is.na(x)))
-  }
   get.sign.consistency <- function(coefficient.matrix){
     return(apply(coefficient.matrix,2,sign.consistency))
   }
- 
-  observeEvent({
-    input$lasso_variable},
-    {
-     count_lasso<-which(names(dat)== input$lasso_variable)
-     if(ount_lasso==8){
-     lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
-    } 
-     else{
-     lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1):8)],input$lasso_variable)
-    }
-    prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
-    bs.data <- data.frame(prop.nonzero.all,consistent.sign.all)
-    rownames(bs.data) <- colnames(lasso.b.all)[-1]
-
- })
+  
+  observeEvent(input$lasso_variable,
+ { count_lasso<-which(names(dat)== input$lasso_variable)
+  if(input$lasso_variable==8){
+  lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
+  }else{
+    lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))],input$lasso_variable)
+  }
+  prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
+  consistent.sign.all <- get.sign.consistency(lasso.b.all[,-1])
+  bs.data <<- data.frame(prop.nonzero.all,consistent.sign.all)
+  View(bs.data)
+  rownames(bs.data) <- colnames(lasso.b.all)[-1]
   output$table<- DT::renderDataTable({
     DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE))
   })
+  })
+  
+  
 }
 
 # Create Shiny app ----
