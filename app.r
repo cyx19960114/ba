@@ -78,16 +78,18 @@ server <- function(input, output) {
   }
   
   observeEvent(input$lasso_variable,
- { count_lasso<-which(names(dat)== input$lasso_variable)
-  if(input$lasso_variable==8){
+ { 
+   count_lasso<-which(names(dat)== input$lasso_variable)
+  if(count_lasso==8){
   lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
+
   }else{
     lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),(count_lasso+1:8))],input$lasso_variable)
+  
   }
   prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
   consistent.sign.all <- get.sign.consistency(lasso.b.all[,-1])
   bs.data <<- data.frame(prop.nonzero.all,consistent.sign.all)
-  View(bs.data)
   rownames(bs.data) <- colnames(lasso.b.all)[-1]
   output$table<- DT::renderDataTable({
     DT::datatable(bs.data,class = "display nowrap",options = list(scrollX=TRUE))
