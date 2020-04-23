@@ -5,8 +5,8 @@
 library(shiny)
 library(dplyr)
 library(tidyr)
-library(ggseg3d)
-library(ggsegExtra)
+# library(ggseg3d)
+# library(ggsegExtra)
 library(plotly)
 library(ggplot2)
 library(readxl)
@@ -997,7 +997,7 @@ server<-function(input, output,session) {
       taco <- grep(target.column,colnames(dat))
     }
     x_vars <- as.matrix(dat[,-taco])
-    y_var <- dat[,taco]
+    y_var <- dat[[taco]]
     y.mean <- 0
     y.sd <- 1
     if (normalise){
@@ -1044,9 +1044,9 @@ server<-function(input, output,session) {
 
   observeEvent(input$lp, { 
     dat<-get_ls_choice()
-    # datex <- loadWorkbook("C:/Users/cyx19/Desktop/ba/ba/OASIS_behavioral.xlsx")
+    # datex <- loadWorkbook("OASIS_behavioral.xlsx")
     # dat <- readWorksheet(datex,1)
-     view(dat)
+    # view(dat)
     count_lasso<-which(names(dat)== input$lasso_variable)
     # print(count_lasso)
     if(count_lasso==8){
