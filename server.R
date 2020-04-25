@@ -16,7 +16,6 @@ library(processx)
 library(reshape2)
 library(cowplot)
 library(ggpubr)
-library("XLConnect")
 library(glmnet)
 library(gplots)
 

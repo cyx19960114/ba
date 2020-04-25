@@ -11,7 +11,6 @@ library(processx)
 library(Rmisc)
 library(plyr)
 library(shinydashboard)
-library("XLConnect")
 library(glmnet)
 library(gplots)
 
