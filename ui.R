@@ -1,8 +1,8 @@
+# library(ggseg3d)
+# library(ggsegExtra)
 library(shiny)
 library(dplyr)
 library(tidyr)
-# library(ggseg3d)
-# library(ggsegExtra)
 library(ggplot2)
 library(readxl)
 library(plotly)
@@ -13,7 +13,7 @@ library(plyr)
 library(shinydashboard)
 library(glmnet)
 library(gplots)
-
+library(shinyWidgets)
 
 dashboardPage(
   
@@ -22,7 +22,8 @@ dashboardPage(
     sidebarMenu(
       
       menuItem("Data",tabName = "Data",icon = icon("file"),
-               fileInput("data_table","TableInput",accept = c("xlsx","xls"))),
+               fileInput("data_table","TableInput",accept = c("xlsx","xls")),
+               prettyRadioButtons("data_type",label = "Data File Type",choices = c("FreeSurfer","CERES","Others"),inline=TRUE)),
       
       
       menuItem("Atlas",tabName = "Atlas",icon=icon("file-alt"),
@@ -55,7 +56,7 @@ dashboardPage(
                  ),
                  
                  
-                 radioButtons(inputId = "select_hemisphere",
+                 prettyRadioButtons(inputId = "select_hemisphere",
                               label = "Choose Hemisphere",
                               choices = c("left","right","both"),
                               selected = "both",inline = TRUE

@@ -1,12 +1,12 @@
 # install.packages("remotes")
 # remotes::install_github("LCBC-UiO/ggseg", build_vignettes = TRUE)
 # remotes::install_github("LCBC-UiO/ggseg3d", build_vignettes = TRUE)
+# library(ggseg3d)
+# library(ggsegExtra)
 
 library(shiny)
 library(dplyr)
 library(tidyr)
-# library(ggseg3d)
-# library(ggsegExtra)
 library(plotly)
 library(ggplot2)
 library(readxl)
@@ -18,8 +18,8 @@ library(cowplot)
 library(ggpubr)
 library(glmnet)
 library(gplots)
+library(shinyWidgets)
 
-# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 source("geom_flat_violin.R")
 source("lm_function_74.R")
 # source("title_fun.R")
@@ -45,14 +45,20 @@ server<-function(input, output,session) {
       return(TRUE)
     }else{
       # OASIS <<- read_excel("OASIS_behavioral.xlsx")
-      return(FALSE)
       # return(TRUE)
-      
+      return(FALSE)
     }
   })
   
+  get_data_type <- reactive({
+    return(input$data_type)
+  })
+  
+  
   output$dataFileLoad <- reactive({
-    return(get_data_file())
+    if(input$data_type=="FreeSurfer"){
+      return(get_data_file())
+    }
   })
   
   outputOptions(output,'dataFileLoad',suspendWhenHidden=FALSE)
@@ -519,8 +525,8 @@ server<-function(input, output,session) {
   ## get the composite way 
   output$com_cd <- renderUI({
     tagList(
-      radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE),
-      radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
+      prettyRadioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),inline = TRUE),
+      prettyRadioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
     )
   })
   
@@ -528,8 +534,8 @@ server<-function(input, output,session) {
   observeEvent(input$com_way_c,{
     output$com_cd <- renderUI({
       tagList(
-        radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = input$com_way_c,inline = TRUE),
-        radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
+        prettyRadioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = input$com_way_c,inline = TRUE),
+        prettyRadioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = character(0),inline = TRUE)
       )
     })
     com_cd <<- input$com_way_c
@@ -538,8 +544,8 @@ server<-function(input, output,session) {
   observeEvent(input$com_way_d,{
     output$com_cd <- renderUI({
       tagList(
-        radioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = character(0),inline = TRUE),
-        radioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = input$com_way_d,inline = TRUE)
+        prettyRadioButtons("com_way_c",label = "Central tendency",choices = c("mean","median"),selected = character(0),inline = TRUE),
+        prettyRadioButtons("com_way_d",label = "Dispersion",choices = c("SD","SEM"),selected = input$com_way_d,inline = TRUE)
       )
     })
     com_cd <<- input$com_way_d
@@ -938,9 +944,6 @@ server<-function(input, output,session) {
   observeEvent(input$lp,{
     updateTabsetPanel(session,"ls_tab","Lasso tabel")
   })
-  
-  
-  
   
   output$quality <- renderPlot({
     if(is.null(input$dp) || input$dp==0){return(NULL)}
