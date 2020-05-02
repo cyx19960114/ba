@@ -22,6 +22,7 @@ library(shinyWidgets)
 
 source("geom_flat_violin.R")
 source("lm_function_74.R")
+source("get_ceres_plot.R")
 # source("title_fun.R")
 file.source=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
@@ -50,15 +51,11 @@ server<-function(input, output,session) {
     }
   })
   
-  get_data_type <- reactive({
-    return(input$data_type)
-  })
+
   
   
   output$dataFileLoad <- reactive({
-    if(input$data_type=="FreeSurfer"){
-      return(get_data_file())
-    }
+    return(get_data_file())
   })
   
   outputOptions(output,'dataFileLoad',suspendWhenHidden=FALSE)
@@ -951,32 +948,41 @@ server<-function(input, output,session) {
     isolate({
       data <- get_qc_choice()
       cols <- ncol(data)
-      data <- data[(cols-147):cols]
-      name_level <- names(data)
-      data <- melt(data)
-      names(data) <- c("area","thickness")
-      data$lr <- substr(data$area,1,1)
-      data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
-      data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
-      data$lr <- as.factor(data$lr)
-      
-      ##format the thickness area names the rearrange the factor levels
-      if(!is.null(input$name_file)){
-        name_level <- rev(unique(substring(name_level,2)))
-        data$area <- factor(x=substring(data$area,2),levels=name_level,ordered = TRUE)
-      }else{
-        name_level <- rev(unique(substring(name_level,4)))
-        data$area <- factor(x=substring(data$area,4),levels=name_level,ordered = TRUE)
+      if(input$data_type=="FreeSurfer"){
+        data <- data[(cols-147):cols]
+        name_level <- names(data)
+        data <- melt(data)
+        names(data) <- c("area","thickness")
+        data$lr <- substr(data$area,1,1)
+        data[which(data$lr=='l'|data$lr=="L"),]$lr <- "left"
+        data[which(data$lr=='r'|data$lr=="R"),]$lr <- "right"
+        data$lr <- as.factor(data$lr)
+        
+        ##format the thickness area names the rearrange the factor levels
+        if(!is.null(input$name_file)){
+          name_level <- rev(unique(substring(name_level,2)))
+          data$area <- factor(x=substring(data$area,2),levels=name_level,ordered = TRUE)
+        }else{
+          name_level <- rev(unique(substring(name_level,4)))
+          data$area <- factor(x=substring(data$area,4),levels=name_level,ordered = TRUE)
+        }
+        
+        p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
+          geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
+          geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
+          geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
+          coord_flip()+
+          facet_wrap(~lr)+
+          theme_cowplot()+
+          guides(fill=FALSE)
+        
+      }else if(input$data_type=="CERES"){
+        
+        data <- data[(cols-273):cols]
+        name_level <- names(data)
+        data <- melt(data)
+        names(data) <- c("area","thickness")
       }
-      
-      p <- ggplot(data,aes(x=area,y=thickness,fill=area))+
-        geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
-        geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
-        geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
-        coord_flip()+
-        facet_wrap(~lr)+
-        theme_cowplot()+
-        guides(fill=FALSE)
       p
     })
   })

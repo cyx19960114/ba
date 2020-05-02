@@ -46,7 +46,7 @@ dashboardPage(
       
       menuItem("Descriptive Statistics",expandedName = "ds",icon=icon("brain"),
                conditionalPanel(
-                 condition="output.dataFileLoad==true",
+                 condition="output.dataFileLoad==true && input.data_type=='FreeSurfer'",
                  uiOutput("fil_ui"),
                  uiOutput("ds_kon"),
                  
@@ -149,7 +149,7 @@ dashboardPage(
     
     
     conditionalPanel(
-      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ds'",
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ds' && input.data_type=='FreeSurfer'",
       tabsetPanel(
         type="tabs",id="ds_tab",
         tabPanel("Table",DT::dataTableOutput("ds_table")),
