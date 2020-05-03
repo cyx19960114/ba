@@ -1,15 +1,7 @@
 library(ggplot2)
 library(gridExtra)
+library(cowplot)
 source("geom_flat_violin.R")
-
-data <- read_excel("Cerebellum_CamCAN_R.xlsx")
-# get.ceres.plot <- function(data){
-
-
-cols <- ncol(data)
-data <- data[(cols-273):cols]
-name_level <- names(data)
-
 
 
 ### get the facet name for four areas
@@ -152,25 +144,27 @@ get.plot <- function(data,area.label=NULL,add.xlabel=FALSE){
 }
 
 get.plots <- function(data,area.label=NULL){
-  ps <- list()
-  if(area.label!="area1"){
-      for (i in seq(from=0,to=0)) {
-        j=i*7
-        for (x in seq(from=j+1,to=j+7)) {
-          print(x==j+1)
-          p <- get.plot(data[,x],area.label,x==j+1)
-          ps <- c(ps,list(p))
-        }
-
-      }
-  }
-  print(length(ps))
   gg.title <- switch (area.label,
                       "area1" = "ICV",           
                       "area2" = "thickness",
                       "area3" = "cortical_thickness",
                       "area4" = "grey_matter",
   )
+  ps <- list()
+  if(area.label!="area1"){
+    for (i in seq(from=0,to=0)) {
+      j=i*7
+      for (x in seq(from=j+1,to=j+7)) {
+        print(x==j+1)
+        p <- get.plot(data[,x],area.label = area.label,x==j+1)
+        ps <- c(ps,list(p))
+      }
+    }
+  }else{
+    p <- get.plot(data,"area1")
+    ps <- c(ps,list(p))
+  }
+  
   title <- ggdraw()+draw_label(gg.title)
   
   plots <- plot_grid(plotlist = ps,ncol=7)
@@ -179,8 +173,29 @@ get.plots <- function(data,area.label=NULL){
 }
 
 
-area1 <- data[,1]
-area2 <- data[,2:8]
-area3 <- data[,93:183]
-area4 <- data[,184:274]
+# area1 <- data[,1]
+# area2 <- data[,2:8]
+# area3 <- data[,93:183]
+# area4 <- data[,184:274]
 
+
+
+
+get.ceres.plot <- function(data){
+  area1 <- data[,1]
+  area2 <- data[,2:92]
+  area3 <- data[,93:183]
+  area4 <- data[,184:274]
+  
+  area1.plot <- get.plots(area1,"area1")
+  area2.plot <- get.plots(area2,"area2")
+  area3.plot <- get.plots(area3,"area3")
+  area4.plot <- get.plots(area4,"area4")
+  
+  creres.plot <- plot_grid(area1.plot,area2.plot,area3.plot,area4.plot,ncol=1)
+  return(creres.plot)
+}
+
+# data <- read_excel("Cerebellum_CamCAN_R.xlsx")
+
+# 

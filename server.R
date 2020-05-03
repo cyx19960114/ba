@@ -45,8 +45,6 @@ server<-function(input, output,session) {
       OASIS <<- read_excel(input$data_table[["datapath"]])
       return(TRUE)
     }else{
-      # OASIS <<- read_excel("OASIS_behavioral.xlsx")
-      # return(TRUE)
       return(FALSE)
     }
   })
@@ -76,6 +74,7 @@ server<-function(input, output,session) {
     is.null(input$data_table)
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
+      
       cols <- ncol(OASIS)
       
       # the to be changed names
@@ -977,7 +976,10 @@ server<-function(input, output,session) {
           guides(fill=FALSE)
         
       }else if(input$data_type=="CERES"){
-        p <- get.plots(area2,"area2")
+        data <- get_qc_choice()
+        qc.cols <- ncol(data)
+        qc.data <- data[(qc.cols-273):qc.cols]
+        p <- get.ceres.plot(qc.cols)
       }
       return(p)
     })
