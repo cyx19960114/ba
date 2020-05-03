@@ -977,13 +977,9 @@ server<-function(input, output,session) {
           guides(fill=FALSE)
         
       }else if(input$data_type=="CERES"){
-        
-        data <- data[(cols-273):cols]
-        name_level <- names(data)
-        data <- melt(data)
-        names(data) <- c("area","thickness")
+        p <- get.plots(area2,"area2")
       }
-      p
+      return(p)
     })
   })
   
