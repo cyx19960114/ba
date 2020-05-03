@@ -152,10 +152,9 @@ get.plots <- function(data,area.label=NULL){
   )
   ps <- list()
   if(area.label!="area1"){
-    for (i in seq(from=0,to=0)) {
+    for (i in seq(from=0,to=12)) {
       j=i*7
       for (x in seq(from=j+1,to=j+7)) {
-        print(x==j+1)
         p <- get.plot(data[,x],area.label = area.label,x==j+1)
         ps <- c(ps,list(p))
       }
@@ -168,15 +167,13 @@ get.plots <- function(data,area.label=NULL){
   title <- ggdraw()+draw_label(gg.title)
   
   plots <- plot_grid(plotlist = ps,ncol=7)
-  plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.1,1))
+  if(area.label=="area1"){
+    plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.3,1))
+  }else{
+    plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.3,rep(13,13)))
+  }
   return(plots)
 }
-
-
-# area1 <- data[,1]
-# area2 <- data[,2:8]
-# area3 <- data[,93:183]
-# area4 <- data[,184:274]
 
 
 
@@ -191,9 +188,11 @@ get.ceres.plot <- function(data){
   area2.plot <- get.plots(area2,"area2")
   area3.plot <- get.plots(area3,"area3")
   area4.plot <- get.plots(area4,"area4")
+
+  creres.plot <- plot_grid(area1.plot,area2.plot,area3.plot,area4.plot,ncol=1,rel_heights = c(1.3,13.3,13.3,13.3))
   
-  creres.plot <- plot_grid(area1.plot,area2.plot,area3.plot,area4.plot,ncol=1)
   return(creres.plot)
+  # return(area2.plot)
 }
 
 # data <- read_excel("Cerebellum_CamCAN_R.xlsx")
