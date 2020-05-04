@@ -254,16 +254,7 @@ server<-function(input, output,session) {
     col_input <- get_ls_fil()
     u_oasis <- get_oasis()
     for (col in col_input) {
-      if(as.character(col)=='sex'){
-        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
-          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
-        }
-      }else if(!is.null(input[[paste0(col,"_qc")]])){
-        v_min <- min(input[[paste0(col,"_qc")]])
-        v_max <- max(input[[paste0(col,"_qc")]])
-        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
-      
+      u_oasis <- get.choice(col,data.table =u_oasis,seletedValue = input[[paste0(col,"_ls")]],col.type = "_ls")
     }
     
     return(u_oasis)
@@ -358,7 +349,20 @@ server<-function(input, output,session) {
         render.ui.output(ff,get_oasis()[[ff]],input[[paste0(ff,"_qc")]],ui_type="_qc")
       ))
     }
+    if(input$data_type=="Others"){
+      x <- append(x,list(
+        selectInput("qc_col","Selected Cols to RainCloud",selected = NULL,multiple = TRUE,choices = c("All",names(get_qc_choice())))
+      ))
+    }
+    
     return(x)
+  })
+  
+  observeEvent(input$qc_col,{
+    cols <- input$qc_col
+    if("All" %in% cols){
+      updateSelectInput(session,"qc_col",selected = names(get_qc_choice()))
+    }
   })
   
   
@@ -757,9 +761,11 @@ server<-function(input, output,session) {
         
       }
       
-    # })
   })
   
+  
+  
+
   
   
   observeEvent(input$ab,{
@@ -892,23 +898,45 @@ server<-function(input, output,session) {
         
       }else if(input$data_type=="CERES"){
         data <- get_qc_choice()
-        # view(data)
         qc.cols <- ncol(data)
-        # print(qc.cols)
         qc.data <- data[(qc.cols-273):qc.cols]
-        p <- get.ceres.plot(qc.data)
+        p <- get.ceres.qc.plot(qc.data)
+      }else{
+        data <- get_qc_choice()
+        cols <- input$qc_col
+        p <- get.other.qc.plot(data,cols)
       }
       return(p)
     })
   })
   
   
+  output$qc_tabs <- renderUI({
+    tagList(
+      tabsetPanel(type="tabs",id="qc_tab",
+                  tabPanel("Table",DT::dataTableOutput("qc_table")),
+                  if(input$data_type=="FreeSurfer"){
+                    tabPanel("Quality Raincloud",plotOutput("quality",height = "7500px",width = "1300px"))
+                    
+                  }else if(input$data_type=="CERES"){
+                    tabPanel("Quality Raincloud",plotOutput("quality",height = "8500px",width = "1500px"))
+                  }else{
+                    tabPanel("Quality Raincloud",plotOutput("quality",height = paste0(((length(input$qc_col)+1)%/%2)*250,"px"),width = "1300px"))
+                  }
+                  
+      )
+    )
+  })
+  
+  
   output$regression <- renderPlot({
-      data <- get_ss_choice()
-      cols <- ncol(data)
-      var_explan <- as.character(input$explan)
-      p <- add_lm_trace(data,var_explan)
-      
+    data <- get_ss_choice()
+    cols <- ncol(data)
+    var_explan <- as.character(input$explan)
+    if(input$data_type=="FreeSurfer"){
+      p <- add_lm_trace_freesurfer(data,var_explan)
+    }
+    return(p)
   })
   
   

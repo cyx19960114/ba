@@ -2,9 +2,8 @@ library(tidyverse)
 library(readxl)
 library(reshape2)
 library(Rmisc)
-# data <- read_excel("OASIS_behavioral.xlsx")
 
-add_lm_trace <- function(data,var_explan="reaction_time"){
+add_lm_trace_freesurfer <- function(data,var_explan="reaction_time"){
   cols <- ncol(data)
   explan <- var_explan
   p <- list()

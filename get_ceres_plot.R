@@ -178,7 +178,7 @@ get.plots <- function(data,area.label=NULL){
 
 
 
-get.ceres.plot <- function(data){
+get.ceres.qc.plot <- function(data){
   area1 <- data[,1]
   area2 <- data[,2:92]
   area3 <- data[,93:183]
@@ -192,9 +192,8 @@ get.ceres.plot <- function(data){
   creres.plot <- plot_grid(area1.plot,area2.plot,area3.plot,area4.plot,ncol=1,rel_heights = c(1.3,13.3,13.3,13.3))
   
   return(creres.plot)
-  # return(area2.plot)
 }
+#################################################################
 
-# data <- read_excel("Cerebellum_CamCAN_R.xlsx")
 
 # 

@@ -139,12 +139,8 @@ dashboardPage(
   dashboardBody(
     conditionalPanel(
       condition="output.dataFileLoad==true && input.sidebarItemExpanded=='qc'",
-      tabsetPanel(type="tabs",id="qc_tab",
-                  tabPanel("Table",DT::dataTableOutput("qc_table")),
-                  # tabPanel("Quality Raincloud",plotOutput("quality",height = "7500px",width = "1300px"))
-                  tabPanel("Quality Raincloud",plotOutput("quality",height = "8500px",width = "1500px"))
-                  
-      )
+      uiOutput("qc_tabs")
+      
       
     ),
     
