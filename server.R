@@ -24,6 +24,8 @@ source("geom_flat_violin.R")
 source("lm_function_74.R")
 source("get_ceres_plot.R")
 source("oasis.tidy.R")
+source("select&slider2Ui.R")
+source("choices.R")
 # source("title_fun.R")
 file.source=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
@@ -46,7 +48,9 @@ server<-function(input, output,session) {
       OASIS <<- read_excel(input$data_table[["datapath"]])
       return(TRUE)
     }else{
-      return(FALSE)
+      OASIS <<- read_excel("OASIS_behavioral.xlsx")
+      return(TRUE)
+      # return(FALSE)
     }
   })
   
@@ -216,17 +220,9 @@ server<-function(input, output,session) {
           }}
       }
     }else{
+      
       for (col in col_com_input) {
-        if(as.character(col)=='sex'){
-          if((!is.null(input$sex_range))&&input$sex_range!="All"){
-            u_oasis <- u_oasis[u_oasis$sex==input$sex_range,]
-          }
-        }else if(!is.null(input[[paste0(col,"_range")]])){
-          v_min <- min(input[[paste0(col,"_range")]])
-          v_max <- max(input[[paste0(col,"_range")]])
-          u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-          u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
-        
+        u_oasis <- get.choice(col,data.table =u_oasis,seletedValue = input[[paste0(col,"_range")]],col.type = "_range")
       }
     }
     return(u_oasis)
@@ -237,38 +233,20 @@ server<-function(input, output,session) {
   get_qc_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_qc_fil()
     u_oasis <- get_oasis()
-    for (col in col_input) {
-      if(as.character(col)=='sex'){
-        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
-          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
-        }
-      }else if(!is.null(input[[paste0(col,"_qc")]])){
-        v_min <- min(input[[paste0(col,"_qc")]])
-        v_max <- max(input[[paste0(col,"_qc")]])
-        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
-      
-    }
     
+    for (col in col_input) {
+      u_oasis <- get.choice(col,data.table =u_oasis,seletedValue = input[[paste0(col,"_qc")]],col.type = "_qc")
+    }
     return(u_oasis)
   })
   
   get_ss_choice <- reactive({    # get the select col and return the selected date
     col_input <- get_ss_fil()
     u_oasis <- get_oasis()
-    for (col in col_input) {
-      if(as.character(col)=='sex'){
-        if((!is.null(input$sex_qc))&&input$sex_qc!="All"){
-          u_oasis <- u_oasis[u_oasis$sex==input$sex_qc,]
-        }
-      }else if(!is.null(input[[paste0(col,"_qc")]])){
-        v_min <- min(input[[paste0(col,"_qc")]])
-        v_max <- max(input[[paste0(col,"_qc")]])
-        u_oasis <- u_oasis[u_oasis[[col]]<=as.numeric(v_max),]
-        u_oasis <- u_oasis[u_oasis[[col]]>=as.numeric(v_min),]}
-      
-    }
     
+    for (col in col_input) {
+      u_oasis <- get.choice(col,data.table =u_oasis,seletedValue = input[[paste0(col,"_ss")]],col.type = "_ss")
+    }
     return(u_oasis)
   })
   
@@ -377,28 +355,7 @@ server<-function(input, output,session) {
     x <- NULL
     for (ff in get_qc_fil()) {
       x <- append(x,list(
-        if(as.character(ff)=="sex"){
-          selectInput("sex_qc",
-                      label = "sex",
-                      choices = unique(append("All",c("F","M"))),
-                      selected = {
-                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
-                          "All"
-                        } else{
-                          input[["sex_qc"]]
-                        }
-                      })
-        }else{
-          sliderInput(paste0(ff,"_qc"),paste(ff),
-                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
-                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
-                        input[[paste0(ff,"_qc")]]
-                      }else{
-                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
-                      }
-                      }
-          )
-        }
+        render.ui.output(ff,get_oasis()[[ff]],input[[paste0(ff,"_qc")]],ui_type="_qc")
       ))
     }
     return(x)
@@ -412,28 +369,29 @@ server<-function(input, output,session) {
     x <- NULL
     for (ff in get_ss_fil()) {
       x <- append(x,list(
-        if(as.character(ff)=="sex"){
-          selectInput("sex_qc",
-                      label = "sex",
-                      choices = unique(append("All",c("F","M"))),
-                      selected = {
-                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
-                          "All"
-                        } else{
-                          input[["sex_qc"]]
-                        }
-                      })
-        }else{
-          sliderInput(paste0(ff,"_qc"),paste(ff),
-                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
-                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
-                        input[[paste0(ff,"_qc")]]
-                      }else{
-                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
-                      }
-                      }
-          )
-        }
+        # if(as.character(ff)=="sex"){
+        #   selectInput("sex_qc",
+        #               label = "sex",
+        #               choices = unique(append("All",c("F","M"))),
+        #               selected = {
+        #                 if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
+        #                   "All"
+        #                 } else{
+        #                   input[["sex_qc"]]
+        #                 }
+        #               })
+        # }else{
+        #   sliderInput(paste0(ff,"_qc"),paste(ff),
+        #               min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
+        #               value = {if(!is.null(input[[paste0(ff,"_qc")]])){
+        #                 input[[paste0(ff,"_qc")]]
+        #               }else{
+        #                 c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
+        #               }
+        #               }
+        #   )
+        # }
+        render.ui.output(ff,get_oasis()[[ff]],input[[paste0(ff,"_ss")]],ui_type="_ss")
       ))
     }
     
