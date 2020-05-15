@@ -968,6 +968,9 @@ server<-function(input, output,session) {
     }
     return(list(lambda=best_lam,coefficients=coef(lasso_best)[,1],predictions=predictions))
   }
+  
+  
+  
   lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
     
     lambda <- rep(0,n.bootstrap)

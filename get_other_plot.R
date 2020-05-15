@@ -5,8 +5,6 @@ source("geom_flat_violin.R")
 
 
 get.other.qc.plot <- function(data,col){
-  
-  
   ps <- list()
   
   for (c in col) {

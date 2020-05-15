@@ -1,6 +1,7 @@
 library(ggplot2)
 library(gridExtra)
 library(cowplot)
+library(randomcoloR)
 source("geom_flat_violin.R")
 
 
@@ -106,7 +107,7 @@ get_lr_factor <- function(x){
 
 
 
-get.plot <- function(data,area.label=NULL,add.xlabel=FALSE){
+get.plot <- function(data,area.label=NULL,add.xlabel=FALSE,fill.col="red"){
   
   f.facet <- switch (area.label,
                      "area1" = "facet.area1",           
@@ -114,6 +115,9 @@ get.plot <- function(data,area.label=NULL,add.xlabel=FALSE){
                      "area3" = "facet.area3",
                      "area4" = "facet.area4",
   )
+  
+  
+  print(fill.col)
   
   
   name_level.area1 <- names(data)
@@ -124,9 +128,9 @@ get.plot <- function(data,area.label=NULL,add.xlabel=FALSE){
   data.melt$area <- get_area_factor(data.melt$area)
   data.melt$lr <- get_lr_factor(data.melt$lr)
   
-  p <- ggplot(data.melt,aes(x=area,y=thickness,fill=area))+
-    geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE)+
-    geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE)+
+  p <- ggplot(data.melt,aes(x=area,y=thickness))+
+    geom_flat_violin(position=position_nudge(x=0.2,y=0),adjust=1,trim = TRUE,fill=fill.col)+
+    geom_point(position = position_jitter(width=.1),size=.2,aes(color=area),show.legend = FALSE,color=fill.col)+
     geom_boxplot(aes(x=as.numeric(area)+0.2,y=thickness),outlier.shape = NA,alpha=0.3,width=0.1,color="BLACK")+
     coord_flip()+
     theme_cowplot()+
@@ -154,8 +158,9 @@ get.plots <- function(data,area.label=NULL){
   if(area.label!="area1"){
     for (i in seq(from=0,to=12)) {
       j=i*7
+      h <- randomColor()
       for (x in seq(from=j+1,to=j+7)) {
-        p <- get.plot(data[,x],area.label = area.label,x==j+1)
+        p <- get.plot(data[,x],area.label = area.label,x==j+1,fill.col = h)
         ps <- c(ps,list(p))
       }
     }
@@ -164,7 +169,7 @@ get.plots <- function(data,area.label=NULL){
     ps <- c(ps,list(p))
   }
   
-  title <- ggdraw()+draw_label(gg.title)
+  title <- ggdraw()+draw_label(gg.title,size = 20)
   
   plots <- plot_grid(plotlist = ps,ncol=7)
   if(area.label=="area1"){
