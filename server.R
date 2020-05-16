@@ -27,6 +27,8 @@ source("oasis.tidy.R")
 source("select&slider2Ui.R")
 source("get_other_plot.R")
 source("choices.R")
+source("lasso_shiny.R")
+source("get_expanded_col.R")
 # source("title_fun.R")
 file.source=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
@@ -80,7 +82,7 @@ server<-function(input, output,session) {
     is.null(input$data_table)
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
-      oasis.tidy(area,OASIS)
+      oasis.tidy(session,area,OASIS)
       
     }else{
       oasis_data <- OASIS
@@ -175,11 +177,22 @@ server<-function(input, output,session) {
   
   ## get the explan names
   get_explan_names <- reactive({
+    input$data_table
+    input$data_type
     cols <- ncol(OASIS)
-    explans <- dplyr::select(OASIS,-(cols-147):-cols)
-    names_explan <- names(explans)
-    to_dellte_name <- which(names_explan==c("ID","sex"))
-    names_explan <- names_explan[-to_dellte_name]
+    if(input$data_type=="FreeSurfer"){
+      explans <- dplyr::select(OASIS,-(cols-147):-cols)
+      names_explan <- get.regerssion.col(explans)
+    }else if(input$data_type=="CERES"){
+      explans <- dplyr::select(OASIS,1:(cols-274))
+      names_explan <- get.regerssion.col(explans)
+    }else{
+      names_explan <- get.regerssion.col(explans)
+    }
+    # explans <- dplyr::select(OASIS,-(cols-147):-cols)
+    # names_explan <- names(explans)
+    # to_dellte_name <- which(names_explan==c("ID","sex"))
+    # names_explan <- names_explan[-to_dellte_name]
     
     return(names_explan)
   })  
@@ -374,28 +387,6 @@ server<-function(input, output,session) {
     x <- NULL
     for (ff in get_ss_fil()) {
       x <- append(x,list(
-        # if(as.character(ff)=="sex"){
-        #   selectInput("sex_qc",
-        #               label = "sex",
-        #               choices = unique(append("All",c("F","M"))),
-        #               selected = {
-        #                 if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
-        #                   "All"
-        #                 } else{
-        #                   input[["sex_qc"]]
-        #                 }
-        #               })
-        # }else{
-        #   sliderInput(paste0(ff,"_qc"),paste(ff),
-        #               min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
-        #               value = {if(!is.null(input[[paste0(ff,"_qc")]])){
-        #                 input[[paste0(ff,"_qc")]]
-        #               }else{
-        #                 c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
-        #               }
-        #               }
-        #   )
-        # }
         render.ui.output(ff,get_oasis()[[ff]],input[[paste0(ff,"_ss")]],ui_type="_ss")
       ))
     }
@@ -936,77 +927,26 @@ server<-function(input, output,session) {
     var_explan <- as.character(input$explan)
     if(input$data_type=="FreeSurfer"){
       p <- add_lm_trace_freesurfer(data,var_explan)
+    }else if(input$data_type=="CERES"){
+      
     }
     return(p)
   })
   
-  
-####lass#####  
-  
-  lasso_training_results <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T){
-    taco <- target.column
-    if (!is.numeric(taco)){
-      taco <- grep(target.column,colnames(dat))
-    }
-    x_vars <- as.matrix(dat[,-taco])
-    y_var <- dat[[taco]]
-    y.mean <- 0
-    y.sd <- 1
-    if (normalise){
-      x_vars <- scale(x_vars)
-      y.mean <- mean(y_var,na.rm=T)
-      y.sd <- sd(y_var,na.rm=T)
-      y_var <- (y_var - y.mean)/y.sd
-    }
-    
-    cv_output <- cv.glmnet(x_vars,y_var,alpha=alpha,lambda=lambda_seq)
-    best_lam <- cv_output$lambda.min
-    lasso_best <- glmnet(x_vars,y_var,alpha=alpha,lambda=best_lam)
-    predictions <- predict(lasso_best,s=best_lam,newx=x_vars)
-    if (normalise){
-      predictions <- y.mean + y.sd*predictions
-    }
-    return(list(lambda=best_lam,coefficients=coef(lasso_best)[,1],predictions=predictions))
-  }
-  
-  
-  
-  lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
-    
-    lambda <- rep(0,n.bootstrap)
-    coefficient.matrix <- matrix(0,nrow=n.bootstrap,ncol=ncol(dat)+1)
-    colnames(coefficient.matrix) <- c("lambda","intercept",colnames(dat)[!names(dat) %in% target.column,drop=F])
-    withProgress(message = 'Calculation in progress',detail = 'Wait a moment',value = 0,expr = {
-    for (i in 1:n.bootstrap){
-      inds <- sample(nrow(dat),nrow(dat),replace=T)
-      lassi <- lasso_training_results(dat[inds,],target.column,lambda_seq=lambda_seq,alpha=alpha,normalise=normalise)
-      coefficient.matrix[i,] <- c(lassi$lambda,lassi$coefficients)
-      incProgress(1/n.bootstrap)
-    }})
-    return(coefficient.matrix)
-  }
-  prop.nonzero <- function(x){
-    return(sum(!is.na(x) & x!=0)/sum(!is.na(x)))
-  }
-  get.proportion.of.nonzero.coeffcients <- function(coefficient.matrix){
-    return(apply(coefficient.matrix,2,prop.nonzero))
-  }
-  sign.consistency <- function(x){
-    return(sum(!is.na(x) & x>=0)==sum(!is.na(x)) | sum(!is.na(x) & x<=0)==sum(!is.na(x)))
-  }
-  get.sign.consistency <- function(coefficient.matrix){
-    return(apply(coefficient.matrix,2,sign.consistency))
-  }
-  
+
 
   observeEvent(input$lp, { 
     dat<-get_ls_choice()
-    count_lasso<-which(names(dat)== input$lasso_variable)
-    if(count_lasso==8){
-      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1))],input$lasso_variable)
-    }else{
-      lasso.b.all <- lasso_bootstrap(dat[,-c(1:(count_lasso-1),((count_lasso+1):8))],input$lasso_variable)
+    col.length <- length(dat)
+    count_lasso<-which(names(dat)==input$lasso_variable)
+
+    if(input$data_type=="FreeSurfer"){
+      dat <- select(dat,input$lasso_variable,(col.length-147):col.length)
+    }else if(input$data_type=="CERES"){
+      dat <- select(dat,input$lasso_variable,(col.length-273):col.length)
     }
+    lasso.b.all <- lasso_bootstrap(dat,names(dat)[1])
+    
     
     prop.nonzero.all <- get.proportion.of.nonzero.coeffcients(lasso.b.all[,-1])
     consistent.sign.all <- get.sign.consistency(lasso.b.all[,-1])

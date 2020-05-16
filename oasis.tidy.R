@@ -1,4 +1,4 @@
-oasis.tidy <- function(area,OASIS){
+oasis.tidy <- function(session,area,OASIS){
   cols <- ncol(OASIS)
   
   # the to be changed names

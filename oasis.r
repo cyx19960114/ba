@@ -73,8 +73,8 @@ lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),a
   colnames(coefficient.matrix) <- c("lambda","intercept",colnames(dat)[!names(dat) %in% target.column,drop=F])
   for (i in 1:n.bootstrap){
     inds <- sample(nrow(dat),nrow(dat),replace=T)
-	lassi <- lasso_training_results(dat[inds,],target.column,lambda_seq=lambda_seq,alpha=alpha,normalise=normalise)
-	coefficient.matrix[i,] <- c(lassi$lambda,lassi$coefficients)
+    lassi <- lasso_training_results(dat[inds,],target.column,lambda_seq=lambda_seq,alpha=alpha,normalise=normalise)
+    coefficient.matrix[i,] <- c(lassi$lambda,lassi$coefficients)
   }
   return(coefficient.matrix)
 }
