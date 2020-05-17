@@ -29,7 +29,7 @@ lasso_training_results <- function(dat,target.column,lambda_seq=10^seq(2,-2,by =
 
 
 
-lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=100){
+lasso_bootstrap <- function(dat,target.column,lambda_seq=10^seq(2,-2,by = -.1),alpha=1,normalise=T,n.bootstrap=1000){
   
   lambda <- rep(0,n.bootstrap)
   coefficient.matrix <- matrix(0,nrow=n.bootstrap,ncol=ncol(dat)+1)
