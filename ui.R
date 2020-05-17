@@ -140,8 +140,16 @@ dashboardPage(
     conditionalPanel(
       condition="output.dataFileLoad==true && input.sidebarItemExpanded=='qc'",
       uiOutput("qc_tabs")
-      
-      
+    ),
+    
+    conditionalPanel(
+      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ss'",
+      uiOutput("ss_tabs")
+      # tabsetPanel(
+      #   type="tabs",id="ss_tab",
+      #   tabPanel("Table",DT::dataTableOutput("ss_table")),
+      #   tabPanel("Regression Plots",plotOutput("regression",height ="40000px",width = "1000px"))
+      # ),
     ),
     
     
@@ -155,14 +163,7 @@ dashboardPage(
       ),
     ),
     
-    conditionalPanel(
-      condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ss'",
-      tabsetPanel(
-        type="tabs",id="ss_tab",
-        tabPanel("Table",DT::dataTableOutput("ss_table")),
-        tabPanel("Regression Plots",plotOutput("regression",height ="40000px",width = "1000px"))
-      ),
-    ),
+ 
     
     conditionalPanel(
       condition="output.dataFileLoad==true && input.sidebarItemExpanded=='ls'",

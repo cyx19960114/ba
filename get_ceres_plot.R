@@ -106,7 +106,6 @@ get_lr_factor <- function(x){
 
 
 
-
 get.plot <- function(data,area.label=NULL,add.xlabel=FALSE,fill.col="red"){
   
   f.facet <- switch (area.label,
@@ -117,10 +116,9 @@ get.plot <- function(data,area.label=NULL,add.xlabel=FALSE,fill.col="red"){
   )
   
   
-  print(fill.col)
   
   
-  name_level.area1 <- names(data)
+  # name_level.area1 <- names(data)
   data.melt <- melt(data)
   names(data.melt) <- c("area","thickness")
   data.melt$lr <- lapply(data.melt$area,f.facet)
@@ -175,7 +173,7 @@ get.plots <- function(data,area.label=NULL){
   if(area.label=="area1"){
     plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.3,1))
   }else{
-    plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.3,rep(13,13)))
+    plots <- plot_grid(title,plots,ncol=1,rel_heights = c(0.3,13))
   }
   return(plots)
 }

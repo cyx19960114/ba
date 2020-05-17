@@ -29,6 +29,7 @@ source("get_other_plot.R")
 source("choices.R")
 source("lasso_shiny.R")
 source("get_expanded_col.R")
+source("lm_function_ceres.R")
 # source("title_fun.R")
 file.source=list.files("ggseg3d//R",pattern="*.R",full.names = TRUE)
 lapply(file.source, source,.GlobalEnv)
@@ -187,7 +188,7 @@ server<-function(input, output,session) {
       explans <- dplyr::select(OASIS,1:(cols-274))
       names_explan <- get.regerssion.col(explans)
     }else{
-      names_explan <- get.regerssion.col(explans)
+      names_explan <- names(OASIS)
     }
     # explans <- dplyr::select(OASIS,-(cols-147):-cols)
     # names_explan <- names(explans)
@@ -369,6 +370,7 @@ server<-function(input, output,session) {
       ))
     }
     
+    
     return(x)
   })
   
@@ -392,6 +394,10 @@ server<-function(input, output,session) {
     }
     
     x <- append(x,list(selectInput("explan",label="Explanatory variable",choices = get_explan_names())))
+    
+    if(input$data_type=="Others"){
+      x <- append(x,list(selectInput("explan_2",label="Data variable",choices = get_explan_names())))
+    }
     return(x)
   })
   
@@ -425,6 +431,9 @@ server<-function(input, output,session) {
     }
     
     x <- append(x,list(selectInput("lasso_variable",label="Explanatory variable",choices = get_explan_names())))
+    if(input$data_type=="Others"){
+      x <- append(x,list(selectInput("lasso_variable_2",label="Data variable",choices = get_explan_names())))
+    }
     return(x)
   })
   
@@ -909,12 +918,27 @@ server<-function(input, output,session) {
                   tabPanel("Table",DT::dataTableOutput("qc_table")),
                   if(input$data_type=="FreeSurfer"){
                     tabPanel("Quality Raincloud",plotOutput("quality",height = "7500px",width = "1300px"))
-                    
                   }else if(input$data_type=="CERES"){
                     tabPanel("Quality Raincloud",plotOutput("quality",height = "8500px",width = "1500px"))
                   }else{
                     tabPanel("Quality Raincloud",plotOutput("quality",height = paste0(((length(input$qc_col)+1)%/%2)*250,"px"),width = "1300px"))
                   }
+      )
+    )
+  })
+  
+  output$ss_tabs <- renderUI({
+    tagList(
+      tabsetPanel(type="tabs",id="ss_tab",
+                  tabPanel("Table",DT::dataTableOutput("ss_table")),
+                  if(input$data_type=="FreeSurfer"){
+                    tabPanel("Regression Plots",plotOutput("regression",height ="40000px",width = "1000px"))
+                  }else if(input$data_type=="CERES"){
+                    tabPanel("Regression Plots",plotOutput("regression",height = "59000px",width = "1500px"))
+                  }else{
+                    # tabPanel("Quality Raincloud",plotOutput("quality",height = paste0(((length(input$qc_col)+1)%/%2)*250,"px"),width = "1300px"))
+                    tabPanel("Regression Plots",plotOutput("regression",height = "500px",width = "500px"))
+                    }
                   
       )
     )
@@ -928,13 +952,19 @@ server<-function(input, output,session) {
     if(input$data_type=="FreeSurfer"){
       p <- add_lm_trace_freesurfer(data,var_explan)
     }else if(input$data_type=="CERES"){
-      
+      p <- get.ceres.lm.plots(data,var_explan)
+    }else{
+      p <- ggplot(OASIS,aes_string(x=input$explan,y=input$explan_2))+
+        geom_point()+
+        stat_smooth(method = lm,level = 0.95)
     }
     return(p)
   })
   
-
-
+  
+  
+  
+  ##lasso regression output###
   observeEvent(input$lp, { 
     dat<-get_ls_choice()
     col.length <- length(dat)
@@ -944,6 +974,8 @@ server<-function(input, output,session) {
       dat <- select(dat,input$lasso_variable,(col.length-147):col.length)
     }else if(input$data_type=="CERES"){
       dat <- select(dat,input$lasso_variable,(col.length-273):col.length)
+    }else{
+      dat <- select(dat,input$lasso_variable,input$lasso_variable_2)
     }
     lasso.b.all <- lasso_bootstrap(dat,names(dat)[1])
     
