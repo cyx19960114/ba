@@ -432,7 +432,7 @@ server<-function(input, output,session) {
     
     x <- append(x,list(selectInput("lasso_variable",label="Explanatory variable",choices = get_explan_names())))
     if(input$data_type=="Others"){
-      x <- append(x,list(selectInput("lasso_variable_2",label="Data variable",choices = get_explan_names())))
+      x <- append(x,list(selectInput("lasso_variable_2",label="Data variable",choices = get_explan_names(),multiple = TRUE)))
     }
     return(x)
   })
@@ -977,6 +977,8 @@ server<-function(input, output,session) {
     }else{
       dat <- select(dat,input$lasso_variable,input$lasso_variable_2)
     }
+    
+    view(dat)
     lasso.b.all <- lasso_bootstrap(dat,names(dat)[1])
     
     
