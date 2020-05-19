@@ -377,7 +377,7 @@ server<-function(input, output,session) {
   observeEvent(input$qc_col,{
     cols <- input$qc_col
     if("All" %in% cols){
-      updateSelectInput(session,"qc_col",selected = names(get_qc_choice()))
+      updateSelectInput(session,"qc_col",selected = names(dplyr::select(get_qc_choice(),-c("ID","sex"))))
     }
   })
   
