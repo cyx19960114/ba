@@ -42,6 +42,5 @@ oasis.tidy <- function(session,area,OASIS){
   updateSelectInput(session,"fil",choices = c("ID","sex","age",pattern))
   updateSelectInput(session,"fil_com",choices = c("sex","age",pattern))
   
-  print("change")
   return(oasis_data)
 }

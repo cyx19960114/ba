@@ -158,7 +158,7 @@ server<-function(input, output,session) {
       tagList(
         selectInput("fil",label = "Filter",
                     choices = names(OASIS),multiple = TRUE)
-      )
+      ) 
     }else{
       tagList(
         selectInput("fil_com",label = "Filter",
@@ -168,8 +168,24 @@ server<-function(input, output,session) {
   })
   
   output$fil_qc <- renderUI({
+    input$name_file
     tagList(
       selectInput("qc_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+    )
+  })
+  
+  
+  output$fil_ss <- renderUI({
+    input$name_file
+    tagList(
+      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+    )
+  })
+  
+  output$fil_ls <- renderUI({
+    input$name_file
+    tagList(
+      selectInput("ls_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
     )
   })
   
@@ -190,26 +206,11 @@ server<-function(input, output,session) {
     }else{
       names_explan <- names(OASIS)
     }
-    # explans <- dplyr::select(OASIS,-(cols-147):-cols)
-    # names_explan <- names(explans)
-    # to_dellte_name <- which(names_explan==c("ID","sex"))
-    # names_explan <- names_explan[-to_dellte_name]
-    
+
     return(names_explan)
   })  
   
-  output$fil_ss <- renderUI({
-    tagList(
-      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
-    )
-  })
-  
-  output$fil_ls <- renderUI({
-    tagList(
-      selectInput("ls_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
-    )
-  })
-  
+
   
   
   
@@ -686,7 +687,7 @@ server<-function(input, output,session) {
     input$ab  
     if(input$ab==0)
       return()
-    # isolate({
+    isolate({
       auswahl_data <- get_auswahl_data()
       if (is.null(auswahl_data)) {
         return()
@@ -761,12 +762,12 @@ server<-function(input, output,session) {
                                      font=list(family="Arial",size=13)))
         
       }
-      
+    })
   })
   
   
   
-
+  
   
   
   observeEvent(input$ab,{
