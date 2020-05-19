@@ -169,7 +169,6 @@ server<-function(input, output,session) {
   
   output$fil_qc <- renderUI({
     input$name_file
-    print(names(OASIS))
     tagList(
       selectInput("qc_fil",label = "Filter",choices = names(get_oasis())[-1],multiple = TRUE)
     )
@@ -178,7 +177,6 @@ server<-function(input, output,session) {
   
   output$fil_ss <- renderUI({
     input$name_file
-    print(names(OASIS))
     tagList(
       selectInput("ss_fil",label = "Filter",choices = names(get_oasis())[-1],multiple = TRUE)
     )
@@ -981,7 +979,6 @@ server<-function(input, output,session) {
       dat <- select(dat,input$lasso_variable,input$lasso_variable_2)
     }
     
-    view(dat)
     lasso.b.all <- lasso_bootstrap(dat,names(dat)[1])
     
     
