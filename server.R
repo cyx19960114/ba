@@ -157,35 +157,37 @@ server<-function(input, output,session) {
     if(input$com==0){
       tagList(
         selectInput("fil",label = "Filter",
-                    choices = names(OASIS),multiple = TRUE)
+                    choices = names(get_oasis()),multiple = TRUE)
       ) 
     }else{
       tagList(
         selectInput("fil_com",label = "Filter",
-                    choices = names(OASIS)[-1],multiple = TRUE)
+                    choices = names(get_oasis())[-1],multiple = TRUE)
       )
     }
   })
   
   output$fil_qc <- renderUI({
     input$name_file
+    print(names(OASIS))
     tagList(
-      selectInput("qc_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+      selectInput("qc_fil",label = "Filter",choices = names(get_oasis())[-1],multiple = TRUE)
     )
   })
   
   
   output$fil_ss <- renderUI({
     input$name_file
+    print(names(OASIS))
     tagList(
-      selectInput("ss_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+      selectInput("ss_fil",label = "Filter",choices = names(get_oasis())[-1],multiple = TRUE)
     )
   })
   
   output$fil_ls <- renderUI({
     input$name_file
     tagList(
-      selectInput("ls_fil",label = "Filter",choices = names(OASIS)[-1],multiple = TRUE)
+      selectInput("ls_fil",label = "Filter",choices = names(get_oasis())[-1],multiple = TRUE)
     )
   })
   
