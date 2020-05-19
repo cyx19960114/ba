@@ -272,7 +272,6 @@ server<-function(input, output,session) {
     for (col in col_input) {
       u_oasis <- get.choice(col,data.table =u_oasis,seletedValue = input[[paste0(col,"_ls")]],col.type = "_ls")
     }
-    
     return(u_oasis)
   })
   
@@ -406,29 +405,32 @@ server<-function(input, output,session) {
     x <- NULL
     for (ff in get_ls_fil()) {
       x <- append(x,list(
-        if(as.character(ff)=="sex"){
-          selectInput("sex_qc",
-                      label = "sex",
-                      choices = unique(append("All",c("F","M"))),
-                      selected = {
-                        if (is.null(input[["sex_qc"]])||"All"==input[["sex_qc"]]){
-                          "All"
-                        } else{
-                          input[["sex_qc"]]
-                        }
-                      })
-        }else{
-          sliderInput(paste0(ff,"_qc"),paste(ff),
-                      min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
-                      value = {if(!is.null(input[[paste0(ff,"_qc")]])){
-                        input[[paste0(ff,"_qc")]]
-                      }else{
-                        c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
-                      }
-                      }
-          )
-        }
+        render.ui.output(ff,get_oasis()[[ff]],input[[paste0(ff,"_ls")]],ui_type="_ls")
       ))
+      # x <- append(x,list(
+      #   if(as.character(ff)=="sex"){
+      #     selectInput("sex_qc",
+      #                 label = "sex",
+      #                 choices = unique(append("All",c("F","M"))),
+      #                 selected = {
+      #                   if (is.null(input[["sex_ls"]])||"All"==input[["sex_ls"]]){
+      #                     "All"
+      #                   } else{
+      #                     input[["sex_qc"]]
+      #                   }
+      #                 })
+      #   }else{
+      #     sliderInput(paste0(ff,"_ls"),paste(ff),
+      #                 min = min(get_oasis()[[ff]]),max=max(get_oasis()[[ff]]),
+      #                 value = {if(!is.null(input[[paste0(ff,"_ls")]])){
+      #                   input[[paste0(ff,"_ls")]]
+      #                 }else{
+      #                   c(min(get_oasis()[[ff]]),max(get_oasis()[[ff]]))
+      #                 }
+      #                 }
+      #     )
+      #   }
+      # ))
     }
     
     x <- append(x,list(selectInput("lasso_variable",label="Explanatory variable",choices = get_explan_names())))
@@ -653,8 +655,6 @@ server<-function(input, output,session) {
     }
     else{
       auswahl_area <- apply(auswahl_area, 2, aus_daten())
-      # auswahl_area <- auswahl_area[1,]
-      # View(auswahl_area)s
     }
     
     auswahl_data <- tibble(
@@ -668,9 +668,7 @@ server<-function(input, output,session) {
     }else{
       auswahl_data <- auswahl_data%>%mutate_if(is.numeric,round,4)
     }
-    # auswahl_area <- t(auswahl_area)
     
-    # View(auswahl_data)
     auswahl_data[[" "]] <- paste(auswahl_data$area,", Wert ist ",auswahl_data$wert)
     
     
@@ -947,19 +945,28 @@ server<-function(input, output,session) {
   
   
   output$regression <- renderPlot({
-    data <- get_ss_choice()
-    cols <- ncol(data)
-    var_explan <- as.character(input$explan)
-    if(input$data_type=="FreeSurfer"){
-      p <- add_lm_trace_freesurfer(data,var_explan)
-    }else if(input$data_type=="CERES"){
-      p <- get.ceres.lm.plots(data,var_explan)
-    }else{
-      p <- ggplot(OASIS,aes_string(x=input$explan,y=input$explan_2))+
-        geom_point()+
-        stat_smooth(method = lm,level = 0.95)
+    input$rp
+    if(input$rp==0){
+      return(0)
     }
-    return(p)
+    
+    isolate({
+      data <- get_ss_choice()
+      cols <- ncol(data)
+      var_explan <- as.character(input$explan)
+      if(input$data_type=="FreeSurfer"){
+        p <- add_lm_trace_freesurfer(data,var_explan)
+      }else if(input$data_type=="CERES"){
+        p <- get.ceres.lm.plots(data,var_explan)
+      }else{
+        p <- ggplot(OASIS,aes_string(x=input$explan,y=input$explan_2))+
+          geom_point()+
+          stat_smooth(method = lm,level = 0.95)
+      }
+      return(p)
+    })
+    
+    
   })
   
   
