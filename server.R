@@ -83,7 +83,7 @@ server<-function(input, output,session) {
     is.null(input$data_table)
     if(!is.null(input$name_file)){
       area <- read_excel(input$name_file[["datapath"]],col_names = FALSE)
-      oasis.tidy(session,area,OASIS)
+      return(oasis.tidy(session,area,OASIS))
       
     }else{
       oasis_data <- OASIS
@@ -154,12 +154,16 @@ server<-function(input, output,session) {
   #######################################################
   
   output$fil_ui <- renderUI({
+    
+    
+    print(names(get_oasis()))
     if(input$com==0){
       tagList(
         selectInput("fil",label = "Filter",
                     choices = names(get_oasis()),multiple = TRUE)
       ) 
     }else{
+      input$name_file
       tagList(
         selectInput("fil_com",label = "Filter",
                     choices = names(get_oasis())[-1],multiple = TRUE)

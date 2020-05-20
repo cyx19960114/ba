@@ -38,9 +38,9 @@ oasis.tidy <- function(session,area,OASIS){
   names(OASIS)[(cols-147):cols] <- pattern
   
   oasis_data <- OASIS
-  updateSelectInput(session,"qc_fil",choices = c("sex","age",pattern))
-  updateSelectInput(session,"fil",choices = c("ID","sex","age",pattern))
-  updateSelectInput(session,"fil_com",choices = c("sex","age",pattern))
+  # updateSelectInput(session,"qc_fil",choices = c("sex","age",pattern))
+  # updateSelectInput(session,"fil",choices = c("ID","sex","age",pattern))
+  # updateSelectInput(session,"fil_com",choices = c("sex","age",pattern))
   
   return(oasis_data)
 }
